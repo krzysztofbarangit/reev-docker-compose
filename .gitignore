@@ -1,0 +1,19 @@
+## Demo
+/.dev
+
+## CI
+/.ci
+
+## Docker Compose
+# Configuration file.
+.env
+.secrets/
+
+# The Docker Compose "override" YAML file.
+docker-compose.override.yml
+
+## Text Editors
+/.vscode
+*~
+.*.sw?
+.idea/

@@ -1,0 +1,49 @@
+# Docker Compose Override YAML fragment that can be used for development
+#
+# It will:
+#
+# - set the number of replicas to 0 for all containers where the equivalent
+#   will be run outside of docker or is not needed; this includes traefik,
+#   reev, postgres, redis, ...
+# - expose the containers that you need runing in docker at the following
+#   ports:
+#   - `3001` -- annonars
+#   - `3002` -- mehari
+#   - `3003` -- viguno
+#   - `3004` -- nginx
+
+services:
+  # map annonars to port 3001
+  annonars:
+    ports:
+      - "3001:8080"
+
+  # map mehari to port 3002
+  mehari:
+    ports:
+      - "3002:8080"
+
+  # map viguno to port 3003
+  viguno:
+    ports:
+      - "3003:8080"
+
+  # map nginx to port 3004
+  nginx:
+    ports:
+      - "3004:80"
+
+  # disable traefik
+  traefik:
+    deploy:
+      replicas: 0
+
+  # disable postgres
+  postgres:
+    deploy:
+      replicas: 0
+
+  # disable redis
+  redis:
+    deploy:
+      replicas: 0

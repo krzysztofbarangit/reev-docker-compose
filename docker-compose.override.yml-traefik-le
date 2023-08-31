@@ -1,0 +1,49 @@
+# Docker Compose Override YAML fragment that allows to use letsencrypt
+# with traefik for TLS.
+#
+# Quick Manual:
+#
+# - create folder `volumes/traefik/letsencrypt` that will be mounted
+#   into the container
+# - merge this file into `docker-compose.override.yml` and override
+#   the `YOUR_EMAIL@YOUR_DOMAIN.com` with your email address
+
+services:
+  # Configuration to override for traefik
+  traefik:
+    command:
+      # Default command lines, see `docker-compose.yml`.
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # EXTRA command lines to make traefik use the config file from bind
+      # mount
+      # NOTE: update the following line
+      - "--certificatesresolvers.le.acme.email=YOUR_EMAIL@YOUR_DOMAIN.com"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.le.acme.tlschallenge=true"
+    volumes:
+      # Default volume lines.
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      # EXTRA volumes lines to mount the (to-be-created) configuration
+      # directory
+      - "./volumes/traefik/letsencrypt:/letsencrypt:rw"
+
+  # Configuration to override for `reev`.
+ reev: 
+    labels:
+      # Default labels lines for reev.
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.xforward.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.reev.entrypoints=web,websecure"
+      - "traefik.http.routers.reev.middlewares=xforward"
+      - "traefik.http.routers.reev.rule=HostRegexp(`{catchall:.+}`)"
+      - "traefik.http.services.reev.loadbalancer.server.port=8080"
+      - "traefik.http.routers.reev.tls=true"
+      # EXTRA labels lines for reev to enable letsencrypt.
+      - "traefik.http.routers.reev.tls=true"
+      - "traefik.http.routers.reev.tls.certresolver=le"

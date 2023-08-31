@@ -1,0 +1,181 @@
+---
+
+version: "3.9"
+
+# == Re-useable Definitions ==================================================
+
+# Default service definition for all (incl. postgres/redis/...)
+x-service-default: &service_default
+  networks:
+    - reev
+  restart: unless-stopped
+
+# Default service definition for reev services.
+#
+# We provide the /data directory as read-only to all services as this
+# simplifies the configuration considerably.
+x-service-reev-default: &service_reev_default
+  <<: *service_default
+  volumes:
+    - type: bind
+      source: ${volumes_basedir:-./.dev/volumes}/reev-static/data
+      target: /data
+      read_only: true
+
+
+# == Services ================================================================
+
+services:
+  # -- Traefik ----------------------------------------------------------------
+  #
+  # We use traefik as the reverse proxy for all public services.
+  #
+  # This file only contains the bare minimal configuraton.  We provide example
+  # override files as `docker-compose.override.yml-traefik-{cert,le}` for
+  # using custom certificates or letsencrypt.
+
+  traefik:
+    <<: *service_default
+    container_name: traefik
+    hostname: traefik
+    image: ${image_traefik_name:-traefik}:${image_traefik_version:-2.10}
+    # Expose the default HTTP and HTTPS ports.
+    ports:
+      - "80:80"
+      - "443:443"
+    command:
+      # Enable Docker provider and disable "exposed by default".
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      # Define the "websecure" entrypoint with port 443.
+      - "--entrypoints.websecure.address=:443"
+      # Define the "web" entrypoint with port 80 and configure automated
+      # permantent redirection from web to websecure (HTTP to HTTPS).
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.web.address=:80"
+    volumes:
+      # Mount Docker socket into container so traefik can react to events.
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  # -- nginx -----------------------------------------------------------------
+  #
+  # We serve static files such as browser tracks with nginx.
+
+  nginx:
+    container_name: nginx
+    hostname: nginx
+    image: ${image_nginx_name:-nginx}:${image_nginx_version:-1}
+    volumes:
+      - type: bind
+        source: ${volumes_basedir:-./.dev/volumes}/reev-static/data
+        target: /data
+        read_only: true
+      - type: bind
+        source: ${config_basedir:-./.dev/config}/nginx/nginx.conf
+        target: /etc/nginx/nginx.conf
+
+  # -- REEV ------------------------------------------------------------------
+  #
+  # REEV web server
+  reev:
+    <<: *service_reev_default
+    container_name: reev
+    hostname: reev
+    image: "${image_base:-ghcr.io/bihealth}/${image_reev_name:-reev}:\
+      ${image_reev_version:-main}"
+    labels:
+      # Default labels lines for reev.
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.xforward.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.reev.entrypoints=web,websecure"
+      - "traefik.http.routers.reev.middlewares=xforward"
+      - "traefik.http.routers.reev.rule=HostRegexp(`{catchall:.+}`)"
+      - "traefik.http.services.reev.loadbalancer.server.port=8080"
+      - "traefik.http.routers.reev.tls=true"
+
+  # -- Mehari ----------------------------------------------------------------
+  #
+  # Mehari provides the transcript-related information.
+
+  mehari:
+    <<: *service_reev_default
+    container_name: mehari
+    hostname: mehari
+    image: "${image_base:-ghcr.io/bihealth}/${image_mehari_name:-mehari}:\
+      ${image_mehari_version:-latest}"
+
+  # -- Viguno ----------------------------------------------------------------
+  #
+  # Viguno provides the disease/phenotype/gene relationships and related
+  # information..
+
+  viguno:
+    <<: *service_reev_default
+    container_name: viguno
+    hostname: viguno
+    image: "${image_base:-ghcr.io/bihealth}/${image_viguno_name:-viguno}:\
+      ${image_viguno_version:-latest}"
+
+  # -- Annonars ---------------------------------------------------------------
+  #
+  # Annonars provides the variant information but also the gene information.
+
+  annonars:
+    <<: *service_reev_default
+    container_name: annonars
+    hostname: annonars
+    image: "${image_base:-ghcr.io/bihealth}/${image_annonars_name:-annonars}:\
+      ${image_annonars_version:-latest}"
+
+  # -- PostgreSQL Server -----------------------------------------------------
+  #
+  # We use the default configuration, but mount a volume for the data for
+  # persistent storage.
+
+  postgres:
+    <<: *service_default
+    container_name: postgres
+    hostname: postgres
+    image: ${image_postgres_name:-postgres}:${image_postgres_version:-12}
+    environment:
+      POSTGRES_USER: reev
+      POSTGRES_PASSWORD_FILE: /run/secrets/db-password
+      POSTGRES_DB: reev
+    secrets:
+      - db-password
+    volumes:
+      - type: bind
+        source: ${volumes_basedir:-./.dev/volumes}/postgres/data
+        target: /var/lib/postgresql/data
+
+  # -- Redis -----------------------------------------------------------------
+  #
+  # We use the default configuration, but mount a volume for the data for
+  # persistent storage.
+
+  redis:
+    <<: *service_default
+    container_name: redis
+    hostname: redis
+    image: ${image_redis_name:-redis}:${image_redis_version:-6}
+    volumes:
+      - type: bind
+        source: ${volumes_basedir:-./.dev/volumes}/redis/data
+        target: /data
+
+# == Secrets ================================================================
+
+secrets:
+  # The PostgreSQL database password.
+  db-password:
+    file: ${secrets_basedir:-./.dev/secrets}/db-password
+
+# == Networks ================================================================
+
+networks:
+  # Explicitely configure the "reev" network so we can control its name.
+  reev:
+    driver_opts:
+      com.docker.network.bridge.name: br-reev

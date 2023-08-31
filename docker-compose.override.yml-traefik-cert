@@ -1,0 +1,36 @@
+# Docker Compose Override YAML fragment that allows to use custom
+# certificates with traefik for TLS.
+#
+# Quick Manual:
+#
+# - create a directory `config/traefik`
+#   - copy the file `utils/traefik-cert/config/certificates.toml` to
+#     `config/traefik`.
+#   - create a sub directory `config/traefik/tls` and place the certificate
+#     (including the whole certificate chain as needed, e.g., for DFN
+#     certificates) to `config/traefik/tls/server.crt` and the certificate
+#     key to `config/traefik/tls/server.key`)
+# - merge this file into `docker-compose.override.yml`
+
+services:
+  # Configuration to override for traefik
+  traefik:
+    command:
+      # Default command lines, see `docker-compose.yml`.
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # EXTRA command lines to make traefik use the config file from bind
+      # mount
+      - "--providers.file.directory=/etc/traefik"
+      - "--providers.file.watch=true"
+    volumes:
+      # Default volume lines.
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      # EXTRA volumes lines to mount the (to-be-created) configuration
+      # directory
+      - "./config/traefik:/etc/traefik:ro"
