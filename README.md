@@ -260,6 +260,24 @@ reev-server-worker db to-bin \
   --path-output-bin .dev/volumes/reev-static/data/worker/grch37/strucvars/inhouse.bin
 ```
 
+To obtain ClinVar
+
+```bash session
+wget -O /tmp/clinvar-annonars-rocksdb-grch37-20230826+0.6.3+0.12.9.tar.gz \
+  https://github.com/bihealth/annonars-data-clinvar/releases/download/clinvar-weekly-20230826/clinvar-annonars-rocksdb-grch37-20230826+0.6.3+0.12.9.tar.gz
+wget -O /tmp/clinvar-annonars-rocksdb-grch38-20230826+0.6.3+0.12.9.tar.gz \
+  https://github.com/bihealth/annonars-data-clinvar/releases/download/clinvar-weekly-20230826/clinvar-annonars-rocksdb-grch38-20230826+0.6.3+0.12.9.tar.gz
+
+tar -C .dev/volumes/reev-static/data/download/annonars/ \
+  -xf /tmp/clinvar-annonars-rocksdb-grch37-20230826+0.6.3+0.12.9.tar.gz 
+tar -C .dev/volumes/reev-static/data/download/annonars \
+  -xf /tmp/clinvar-annonars-rocksdb-grch38-20230826+0.6.3+0.12.9.tar.gz 
+
+ln -sr .dev/volumes/reev-static/data/download/annonars/clinvar-annonars-rocksdb-grch37-20230826+0.6.3+0.12.9 \
+  .dev/volumes/varfish-static/data/annonars/grch37/clinvar
+ln -sr .dev/volumes/reev-static/data/download/annonars/clinvar-annonars-rocksdb-grch37-20230826+0.6.3+0.12.9 \
+  .dev/volumes/varfish-static/data/annonars/grch38/clinvar
+```
 ### Setup Configuration
 
 The next step step is to create the configuration files in `.dev/config`.
