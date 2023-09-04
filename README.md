@@ -95,7 +95,7 @@ reduced-dev/viguno/*:viguno
     --endpoint-url=https://ceph-s3-public.cubi.bihealth.org \
     --no-sign-request \
     sync \
-      "s3://reev-public/$src" \
+      "s3://varfish-public/$src" \
       ".dev/volumes/reev-static/data/download/$dst"; \
 done)
 ```
