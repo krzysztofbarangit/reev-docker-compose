@@ -274,9 +274,9 @@ tar -C .dev/volumes/reev-static/data/download/annonars \
   -xf /tmp/clinvar-annonars-rocksdb-grch38-20230826+0.6.3+0.12.9.tar.gz 
 
 ln -sr .dev/volumes/reev-static/data/download/annonars/clinvar-annonars-rocksdb-grch37-20230826+0.6.3+0.12.9 \
-  .dev/volumes/varfish-static/data/annonars/grch37/clinvar
+  .dev/volumes/reev-static/data/annonars/grch37/clinvar
 ln -sr .dev/volumes/reev-static/data/download/annonars/clinvar-annonars-rocksdb-grch37-20230826+0.6.3+0.12.9 \
-  .dev/volumes/varfish-static/data/annonars/grch38/clinvar
+  .dev/volumes/reev-static/data/annonars/grch38/clinvar
 ```
 ### Setup Configuration
 
