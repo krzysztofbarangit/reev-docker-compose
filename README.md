@@ -60,7 +60,7 @@ Next, create a `docker-compose.override.yml` with the contents of the file `dock
 This will disable everything that we assume is running on your host when you are developing.
 This includes the REEV backend, redis, celery workers, postgres.
 
-```bash session
+``bash session
 cp docker-compose.override.yml-dev docker-compose.override.yml
 ```
 
@@ -77,7 +77,7 @@ full/annonars/gnomad-mtdna-grch37-3.1+0.12.8/*:annonars/gnomad-mtdna-grch37-3.1+
 full/annonars/gnomad-mtdna-grch38-3.1+0.12.8/*:annonars/gnomad-mtdna-grch38-3.1+0.12.8
 full/annonars/helixmtdb-grch37-20200327+0.12.8/*:annonars/helixmtdb-grch37-20200327+0.12.8
 full/annonars/helixmtdb-grch38-20200327+0.12.8/*:annonars/helixmtdb-grch38-20200327+0.12.8
-full/annonars/genes-3.1+2.1.1+4.4+20230606+10.1+20230828+0.16.0/*:annonars/genes-3.1+2.1.1+4.4+20230606+10.1+20230828+0.16.0
+full/annonars/genes-3.1+2.1.1+4.4+20230606+10.1+20230828+0.19.0/*:annonars/genes-3.1+2.1.1+4.4+20230606+10.1+20230828+0.19.0
 full/mehari/genes-txs-grch37-0.2.2/*:mehari/genes-txs-grch37-0.2.2
 full/mehari/genes-txs-grch38-0.2.2/*:mehari/genes-txs-grch38-0.2.2
 full/mehari/genes-xlink-20230624/*:mehari/genes-xlink-20230624
@@ -263,20 +263,28 @@ reev-server-worker db to-bin \
 To obtain ClinVar
 
 ```bash session
-wget -O /tmp/clinvar-annonars-rocksdb-grch37-20230826+0.6.3+0.12.9.tar.gz \
-  https://github.com/bihealth/annonars-data-clinvar/releases/download/clinvar-weekly-20230826/clinvar-annonars-rocksdb-grch37-20230826+0.6.3+0.12.9.tar.gz
-wget -O /tmp/clinvar-annonars-rocksdb-grch38-20230826+0.6.3+0.12.9.tar.gz \
-  https://github.com/bihealth/annonars-data-clinvar/releases/download/clinvar-weekly-20230826/clinvar-annonars-rocksdb-grch38-20230826+0.6.3+0.12.9.tar.gz
+wget -O /tmp/annonars-clinvar-minimal-grch37-20230910+0.18.0.tar.gz \
+  https://github.com/bihealth/annonars-data-clinvar/releases/download/clinvar-weekly-20230910/annonars-clinvar-minimal-grch37-20230910+0.18.0.tar.gz
+wget -O /tmp/annonars-clinvar-minimal-grch38-20230910+0.18.0.tar.gz \
+  https://github.com/bihealth/annonars-data-clinvar/releases/download/clinvar-weekly-20230910/annonars-clinvar-minimal-grch38-20230910+0.18.0.tar.gz
 
-tar -C .dev/volumes/reev-static/data/download/annonars/ \
-  -xf /tmp/clinvar-annonars-rocksdb-grch37-20230826+0.6.3+0.12.9.tar.gz 
-tar -C .dev/volumes/reev-static/data/download/annonars \
-  -xf /tmp/clinvar-annonars-rocksdb-grch38-20230826+0.6.3+0.12.9.tar.gz 
+tar --strip-components=2 -C .dev/volumes/reev-static/data/download/annonars/ \
+  -xf /tmp/annonars-clinvar-minimal-grch37-20230910+0.18.0.tar.gz
+tar --strip-components=2 -C .dev/volumes/reev-static/data/download/annonars \
+  -xf /tmp/annonars-clinvar-minimal-grch38-20230910+0.18.0.tar.gz
 
-ln -sr .dev/volumes/reev-static/data/download/annonars/clinvar-annonars-rocksdb-grch37-20230826+0.6.3+0.12.9 \
+ln -sr .dev/volumes/reev-static/data/download/annonars/annonars-clinvar-minimal-grch37-20230910+0.18.0 \
   .dev/volumes/reev-static/data/annonars/grch37/clinvar
-ln -sr .dev/volumes/reev-static/data/download/annonars/clinvar-annonars-rocksdb-grch37-20230826+0.6.3+0.12.9 \
+ln -sr .dev/volumes/reev-static/data/download/annonars/annonars-clinvar-minimal-grch38-20230910+0.18.0 \
   .dev/volumes/reev-static/data/annonars/grch38/clinvar
+
+wget -O /tmp/annonars-clinvar-genes-20230910+0.18.0.tar.gz \
+  https://github.com/bihealth/annonars-data-clinvar/releases/download/clinvar-weekly-20230910/annonars-clinvar-genes-20230910+0.18.0.tar.gz
+tar -C .dev/volumes/reev-static/data/download/annonars \
+  -xf /tmp/annonars-clinvar-genes-20230910+0.18.0.tar.gz
+
+ln -sr .dev/volumes/reev-static/data/download/annonars/annonars-clinvar-genes-20230910+0.18.0 \
+  .dev/volumes/reev-static/data/annonars/clinvar-genes
 ```
 ### Setup Configuration
 
@@ -293,7 +301,7 @@ Now, you can bring up the docker compose environment (stop with `Ctrl+C`).
 
 ```bash session
 docker compose up
-```
+``-
 
 To verify the results, have a look at the following URLs:
 
