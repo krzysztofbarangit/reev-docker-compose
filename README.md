@@ -60,7 +60,7 @@ Next, create a `docker-compose.override.yml` with the contents of the file `dock
 This will disable everything that we assume is running on your host when you are developing.
 This includes the REEV backend, redis, celery workers, postgres.
 
-``bash session
+```bash session
 cp docker-compose.override.yml-dev docker-compose.override.yml
 ```
 
@@ -301,7 +301,7 @@ Now, you can bring up the docker compose environment (stop with `Ctrl+C`).
 
 ```bash session
 docker compose up
-``-
+```
 
 To verify the results, have a look at the following URLs:
 
