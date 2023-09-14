@@ -83,6 +83,13 @@ services:
     <<: *service_reev_default
     container_name: reev
     hostname: reev
+    depends_on:
+      - annonars
+      - mehari
+      - viguno
+      - nginx
+      - postgres
+      - redis
     image: "${image_base:-ghcr.io/bihealth}/${image_reev_name:-reev}:\
       ${image_reev_version:-main}"
     labels:
