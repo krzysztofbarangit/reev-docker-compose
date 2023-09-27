@@ -41,6 +41,8 @@ Now, we create the directories for data storage.
 
 ```bash session
 mkdir -p .dev/volumes/reev-static/data
+mkdir -p .dev/volumes/postgres/data
+mkdir -p .dev/volumes/redis/data
 ```
 
 Next, we setup some "secrets" for the passwords.
