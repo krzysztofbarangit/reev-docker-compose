@@ -11,6 +11,8 @@
 #   - `3002` -- mehari
 #   - `3003` -- viguno
 #   - `3004` -- nginx
+#   - `3020` -- postgres
+#   - `3030` -- redis
 
 services:
   # map annonars to port 3001
@@ -38,12 +40,12 @@ services:
     deploy:
       replicas: 0
 
-  # disable postgres
+  # map postgres port to 3020
   postgres:
-    deploy:
-      replicas: 0
+    ports:
+      - "3020:5432"
 
-  # disable redis
+  # map redis port to 6379
   redis:
-    deploy:
-      replicas: 0
+    ports:
+      - "3030:6379"
