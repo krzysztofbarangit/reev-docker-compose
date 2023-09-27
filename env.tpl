@@ -1,5 +1,34 @@
 # Template for an .env file.
 
+# -- Stack Configuration -----------------------------------------------------
+
+# Backend
+BACKEND_CORS_ORIGINS=
+SECRET_KEY=SECURITY-ALERT-REPLACE-THIS-KEY
+FIRST_SUPERUSER=admin
+FIRST_SUPERUSER_PASSWORD=SECURITY-ALERT-REPLACE-THIS
+# SMTP_TLS=True
+# SMTP_PORT=
+# SMTP_HOST=
+# SMTP_USER=
+# SMTP_PASSWORD=
+# EMAILS_FROM_EMAIL=
+
+# Postgres
+POSTGRES_SERVER=postgres
+POSTGRES_USER=reev
+POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+POSTGRES_DB=reev
+
+# pgAdmin
+PGADMIN_LISTEN_PORT=80
+PGADMIN_DEFAULT_EMAIL=admin@example.com
+PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/pgadmin-password
+PGADMIN_DISABLE_POSTFIX=1
+
+# Flower
+FLOWER_BASIC_AUTH=admin:flower-password
+
 # -- Docker Images -----------------------------------------------------------
 
 # Name of the registry server and org to use for our images.
@@ -35,11 +64,23 @@
 # Version of the postgres image to use.
 # image_postgres_version=12
 
-# Name of the redis image to use.
-# image_redis_name=redis
+# Name of the rabbitmq image to use.
+# image_rabbitmq_name=rabbitmq
 
-# Version of the redis image to use.
-# image_redis_version=6
+# Version of the rabbitmq image to use.
+# image_rabbitmq_version=3
+
+# Name of the flower image to use.
+# image_flower_name=mher/flower
+
+# Version of the flower image to use.
+# image_flower_version=latest
+
+# Name of the pgadmin image to use.
+# image_pgadmin_name=dpage/pgadmin4
+
+# Version of the pgadmin image to use
+# image_pgadmin_version=latest
 
 # Name of the reev image to use.
 # image_reev_name=reev

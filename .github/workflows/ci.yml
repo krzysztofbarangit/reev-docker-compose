@@ -28,18 +28,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Prepare secrets
+        run: |
+          mkdir -p .ci/secrets
+          echo db-password > .ci/secrets/db-password
+          echo pgadmin-password > .ci/secrets/pgadmin-password
+
       - name: Prepare empty volumes
         run: |
-          mkdir -p .ci/volumes/postgres/data
-          mkdir -p .ci/volumes/redis/data
           mkdir -p .ci/volumes/minio/data
-          mkdir -p .ci/volumes/varfish-static/data
+          mkdir -p .ci/volumes/pgadmin/data
+          mkdir -p .ci/volumes/postgres/data
+          mkdir -p .ci/volumes/rabbitmq/data
+          mkdir -p .ci/volumes/redis/data
+          mkdir -p .ci/volumes/reev-static/data
+
+      - name: Prepare configuration
+        run: |
+          cp .env.ci .env
+
+          mkdir -p .ci/config/nginx
+          cp utils/nginx/nginx.conf .ci/config/nginx
+          mkdir -p .ci/config/pgadmin
+          cp utils/pgadmin/servers.json .ci/config/pgadmin
 
       - name: Bring up and shut down services
         uses: isbang/compose-action@v1.4.1
         with:
           compose-file: docker-compose.yml
           compose-flags: |
-            --env-file .env.ci
+            --env-file .env
         env:
           DB_PASSWORD: "password"

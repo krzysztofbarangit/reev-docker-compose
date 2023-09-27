@@ -40,9 +40,10 @@ In a production deployment, these directories should live outside of the checkou
 Now, we create the directories for data storage.
 
 ```bash session
-mkdir -p .dev/volumes/reev-static/data
+mkdir -p .dev/volumes/pgadmin/data
 mkdir -p .dev/volumes/postgres/data
-mkdir -p .dev/volumes/redis/data
+mkdir -p .dev/volumes/rabbitmq/data
+mkdir -p .dev/volumes/reev-static/data
 ```
 
 Next, we setup some "secrets" for the passwords.
@@ -50,6 +51,7 @@ Next, we setup some "secrets" for the passwords.
 ```bash session
 mkdir -p .dev/secrets
 echo db-password >.dev/secrets/db-password
+echo pgadmin-password >.dev/secrets/pgadmin-password
 ```
 
 We now copy the `env.tpl` file to the default location for the environment `.env`.
@@ -60,7 +62,7 @@ cp env.tpl .env
 
 Next, create a `docker-compose.override.yml` with the contents of the file `docker-compose.override.yml-dev`.
 This will disable everything that we assume is running on your host when you are developing.
-This includes the REEV backend, redis, celery workers, postgres.
+This includes the REEV backend, rabbitmq, celery workers, postgres.
 
 ```bash session
 cp docker-compose.override.yml-dev docker-compose.override.yml
@@ -295,6 +297,9 @@ The next step step is to create the configuration files in `.dev/config`.
 ```bash session
 mkdir -p .dev/config/nginx
 cp utils/nginx/nginx.conf .dev/config/nginx
+
+mkdir -p .dev/config/pgadmin
+cp utils/pgadmin/servers.json .dev/config/pgadmin
 ```
 
 ### Startup and Check
@@ -347,9 +352,9 @@ Annonars (by the REEV authors) provides variant annotation from public databases
 
 We use postgres for the database backend of REEV.
 
-### Redis
+### Rabbitmq
 
-The Redis database is used for key-value store, e.g., for caching and the queues in the REEV server.
+We use rabbitmq for message queues.
 
 ## Developer Info
 

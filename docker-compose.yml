@@ -6,6 +6,8 @@ version: "3.9"
 
 # Default service definition for all (incl. postgres/redis/...)
 x-service-default: &service_default
+  env_file:
+    - .env
   networks:
     - reev
   restart: unless-stopped
@@ -79,6 +81,7 @@ services:
   # -- REEV ------------------------------------------------------------------
   #
   # REEV web server
+
   reev:
     <<: *service_reev_default
     container_name: reev
@@ -89,7 +92,7 @@ services:
       - viguno
       - nginx
       - postgres
-      - redis
+      - rabbitmq
     image: "${image_base:-ghcr.io/bihealth}/${image_reev_name:-reev}:\
       ${image_reev_version:-main}"
     labels:
@@ -146,10 +149,6 @@ services:
     container_name: postgres
     hostname: postgres
     image: ${image_postgres_name:-postgres}:${image_postgres_version:-12}
-    environment:
-      POSTGRES_USER: reev
-      POSTGRES_PASSWORD_FILE: /run/secrets/db-password
-      POSTGRES_DB: reev
     secrets:
       - db-password
     volumes:
@@ -157,20 +156,59 @@ services:
         source: ${volumes_basedir:-./.dev/volumes}/postgres/data
         target: /var/lib/postgresql/data
 
-  # -- Redis -----------------------------------------------------------------
+  # -- rabbitmq --------------------------------------------------------------
   #
   # We use the default configuration, but mount a volume for the data for
   # persistent storage.
 
-  redis:
+  rabbitmq:
     <<: *service_default
-    container_name: redis
-    hostname: redis
-    image: ${image_redis_name:-redis}:${image_redis_version:-6}
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: ${image_rabbitmq_name:-rabbitmq}:${image_rabbitmq_version:-3}
     volumes:
       - type: bind
-        source: ${volumes_basedir:-./.dev/volumes}/redis/data
-        target: /data
+        source: ${volumes_basedir:-./.dev/volumes}/rabbitmq/data
+        target: /var/lib/rabbitmq
+
+  # -- pgAdmin ----------------------------------------------------------------
+  #
+  # Useful for interactive database administration.
+
+  pgadmin:
+    <<: *service_default
+    container_name: pgadmin
+    hostname: pgadmin
+    image: "${image_pgadmin_name:-dpage/pgadmin4}:\
+      ${image_pgadmin_version:-latest}"
+    secrets:
+      - db-password
+      - pgadmin-password
+    depends_on:
+      - postgres
+    volumes:
+      - type: bind
+        source: ${volumes_basedir:-./.dev/volumes}/pgadmin/data
+        target: /private/var/lib/pgadmin
+      - type: bind
+        source: ${config_basedir:-./.dev/config}/pgadmin/servers.json
+        target: /pgadmin4/servers.json
+
+  # -- flower -----------------------------------------------------------------
+  #
+  # Real-time celery monitoring.
+
+  flower:
+    <<: *service_default
+    container_name: flower
+    hostname: flower
+    image: ${image_flower_name:-mher/flower}:${image_flower_version:-latest}
+    depends_on:
+      - rabbitmq
+    command:
+      - "celery"
+      - "--broker=amqp://guest@rabbitmq:5672//"
+      - "flower"
 
 # == Secrets ================================================================
 
@@ -178,6 +216,9 @@ secrets:
   # The PostgreSQL database password.
   db-password:
     file: ${secrets_basedir:-./.dev/secrets}/db-password
+  # The pgAdmin admin password.
+  pgadmin-password:
+    file: ${secrets_basedir:-./.dev/secrets}/pgadmin-password
 
 # == Networks ================================================================
 
