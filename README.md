@@ -43,6 +43,7 @@ Now, we create the directories for data storage.
 mkdir -p .dev/volumes/pgadmin/data
 mkdir -p .dev/volumes/postgres/data
 mkdir -p .dev/volumes/rabbitmq/data
+mkdir -p .dev/volumes/redis/data
 mkdir -p .dev/volumes/reev-static/data
 ```
 

@@ -13,6 +13,7 @@
 #   - `3004` -- nginx
 #   - `3020` -- postgres
 #   - `3030` -- redis
+#   - `3031` -- rabbitmq
 #   - `3040` -- flower
 
 services:
@@ -46,10 +47,15 @@ services:
     ports:
       - "3020:5432"
 
-  # map rabbitmq port to 3030
-  rabbitmq:
+  # map redis port to 3030
+  redis:
     ports:
       - "3030:6379"
+
+  # map rabbitmq port to 3031
+  rabbitmq:
+    ports:
+      - "3031:6379"
 
   # map flower port to 3040
   flower:

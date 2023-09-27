@@ -156,6 +156,21 @@ services:
         source: ${volumes_basedir:-./.dev/volumes}/postgres/data
         target: /var/lib/postgresql/data
 
+  # -- redis -----------------------------------------------------------------
+  #
+  # We use the default configuration, but mount a volume for the data for
+  # persistent storage.
+
+  redis:
+    <<: *service_default
+    container_name: redis
+    hostname: redis
+    image: ${image_redis_name:-redis}:${image_redis_version:-7}
+    volumes:
+      - type: bind
+        source: ${volumes_basedir:-./.dev/volumes}/redis/data
+        target: /data
+
   # -- rabbitmq --------------------------------------------------------------
   #
   # We use the default configuration, but mount a volume for the data for

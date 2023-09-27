@@ -64,6 +64,12 @@ FLOWER_BASIC_AUTH=admin:flower-password
 # Version of the postgres image to use.
 # image_postgres_version=12
 
+# Name of the redis image to use.
+# image_redis_name=redisq
+
+# Version of the redis image to use.
+# image_redis_version=7
+
 # Name of the rabbitmq image to use.
 # image_rabbitmq_name=rabbitmq
 
