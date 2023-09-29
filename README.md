@@ -311,7 +311,8 @@ Now, you can bring up the docker compose environment (stop with `Ctrl+C`).
 docker compose up
 ```
 
-To verify the results, have a look at the following URLs:
+To verify the results, have a look at the following URLs.
+These URLs are used by the REEV application.
 
 - Annonars database infos: http://127.0.0.1:3001/annos/db-info?genome_release=grch37
 - Annonars gene info: http://0.0.0.0:3001/genes/info?hgnc_id=HGNC:12403
@@ -322,11 +323,17 @@ To verify the results, have a look at the following URLs:
 
 Note that the development subset only has variants for a few genes, including BRCA1 (the example above).
 
+You will also have the following services useful for introspection during development.
+For production, you probably don't want to expose them publically.
+
+- [flower](https://flower.readthedocs.io/en/latest/), login is `admin`, with password `flower-password`
+- [pgAdmin](https://www.pgadmin.org/) for Postgres DB administration: http://127.0.0.1:3041 login is `admin@example.com` with password `pgadmin-password`
+
 ## Service Information
 
 This section describes the services that are started with this Docker Compose.
 
-### Trafik
+### Traefik
 
 [Traefik](https://traefik.io/traefik/) is a reverse proxy that is used as the main entry point for all services behind HTTP(S).
 The software is well-documented by its creators.
@@ -356,6 +363,19 @@ We use postgres for the database backend of REEV.
 ### Rabbitmq
 
 We use rabbitmq for message queues.
+
+### Redis
+
+REDIS is used for storing authentication sessions.
+
+### PgAdmin
+
+PgAdmin is a web-based administration tool for Postgres.
+We provide it for development and debugging but it can also come in handy in production.
+
+### Flower
+
+Flower is a web-based application for monitoring and administrating Celery.
 
 ## Developer Info
 

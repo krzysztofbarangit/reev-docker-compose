@@ -15,6 +15,7 @@
 #   - `3030` -- redis
 #   - `3031` -- rabbitmq
 #   - `3040` -- flower
+#   - `3041` -- pgadmin
 
 services:
   # map annonars to port 3001
@@ -61,3 +62,8 @@ services:
   flower:
     ports:
       - "3040:5555"
+
+  # map pgadminport to 3041
+  pgadmin:
+    ports:
+      - "3041:80"
