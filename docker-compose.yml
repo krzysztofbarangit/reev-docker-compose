@@ -93,8 +93,13 @@ services:
       - nginx
       - postgres
       - rabbitmq
+      - redis
     image: "${image_base:-ghcr.io/bihealth}/${image_reev_name:-reev}:\
       ${image_reev_version:-main}"
+    secrets:
+      - db-password
+    environment:
+      FORWARDED_ALLOW_IPS: "*"
     labels:
       # Default labels lines for reev.
       - "traefik.enable=true"
