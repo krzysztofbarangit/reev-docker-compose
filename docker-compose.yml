@@ -66,6 +66,7 @@ services:
   # We serve static files such as browser tracks with nginx.
 
   nginx:
+    <<: *service_default
     container_name: nginx
     hostname: nginx
     image: ${image_nginx_name:-nginx}:${image_nginx_version:-1}
