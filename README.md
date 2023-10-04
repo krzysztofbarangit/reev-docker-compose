@@ -291,6 +291,28 @@ tar -C .dev/volumes/reev-static/data/download/annonars \
 ln -sr .dev/volumes/reev-static/data/download/annonars/annonars-clinvar-genes-20230910+0.18.0 \
   .dev/volumes/reev-static/data/annonars/clinvar-genes
 ```
+
+To obtain data for dotty
+
+```bash session
+mkdir -p .dev/volumes/reev-static/data/download/dotty
+pushd .dev/volumes/reev-static/data/download/dotty
+wget \
+    https://github.com/SACGF/cdot/releases/download/v0.2.21/cdot-0.2.21.ensembl.grch37.json.gz \
+    https://github.com/SACGF/cdot/releases/download/v0.2.21/cdot-0.2.21.ensembl.grch38.json.gz \
+    https://github.com/SACGF/cdot/releases/download/v0.2.21/cdot-0.2.21.refseq.grch37.json.gz \
+    https://github.com/SACGF/cdot/releases/download/v0.2.21/cdot-0.2.21.refseq.grch38.json.gz
+wget \
+  https://github.com/bihealth/dotty/releases/download/v0.1.0/seqrepo.tar.gz-00 \
+  https://github.com/bihealth/dotty/releases/download/v0.1.0/seqrepo.tar.gz-01
+cat seqrepo.tar.gz-?? | tar xzf -
+popd
+
+mkdir -p .dev/volumes/reev-static/data/dotty
+ln -sr .dev/volumes/reev-static/data/download/dotty/{*.json.gz,seqrepo} \
+  .dev/volumes/reev-static/data/dotty
+```
+
 ### Setup Configuration
 
 The next step step is to create the configuration files in `.dev/config`.
@@ -320,6 +342,7 @@ These URLs are used by the REEV application.
 - Mehari impact prections: http://127.0.0.1:3002/tx/csq?genome-release=grch37&chromosome=17&position=48275363&reference=C&alternative=A
 - Viguno for TGDS: http://127.0.0.1:3003/hpo/genes?gene_symbol=TGDS
 - Nginx server with browser tracks http://127.0.0.1:3004/
+- Dotty server with c./n./g. to SPDI resolution http://127.0.0.1:3005/api/v1/to-spdi?q=NM_000059.3:c.274G%3EA
 
 Note that the development subset only has variants for a few genes, including BRCA1 (the example above).
 
@@ -343,6 +366,10 @@ We thus summarize some important points here.
 - Almost all configuration is done using labels on the `traefik` container itself or other containers.
 - In the case of using configuration files, you will have to mount them from the host into the container.
 - By default, we use "catch-all" configuration based on regular expressions on the host/domain name.
+
+### Dotty
+
+Dotty (by the REEV authors) provides mapping from c./n./g. notation to SPDI.
 
 ### Mehari
 

@@ -11,6 +11,7 @@
 #   - `3002` -- mehari
 #   - `3003` -- viguno
 #   - `3004` -- nginx
+#   - `3005` -- dotty
 #   - `3020` -- postgres
 #   - `3030` -- redis
 #   - `3031` -- rabbitmq
@@ -37,6 +38,11 @@ services:
   nginx:
     ports:
       - "3004:80"
+
+  # map dotty to port 3005
+  nginx:
+    ports:
+      - "3005:8080"
 
   # disable traefik
   traefik:
@@ -67,3 +73,8 @@ services:
   pgadmin:
     ports:
       - "3041:80"
+
+  # no replicas of reev
+  reev:
+    deploy:
+      replicas: 0

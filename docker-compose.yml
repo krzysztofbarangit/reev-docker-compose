@@ -110,6 +110,20 @@ services:
       - "traefik.http.services.reev.loadbalancer.server.port=8080"
       - "traefik.http.routers.reev.tls=true"
 
+  # -- Dotty -----------------------------------------------------------------
+  #
+  # Dotty provides translation from c./n./g. notation to SPDI.
+
+  dotty:
+    <<: *service_reev_default
+    container_name: dotty
+    hostname: dotty
+    image: "${image_base:-ghcr.io/bihealth}/${image_dotty_name:-dotty}:\
+      ${image_dotty_version:-latest}"
+    environment:
+      DATA_DIR: /data/dotty
+
+
   # -- Mehari ----------------------------------------------------------------
   #
   # Mehari provides the transcript-related information.

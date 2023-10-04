@@ -34,6 +34,12 @@ FLOWER_BASIC_AUTH=admin:flower-password
 # Name of the registry server and org to use for our images.
 # image_base=ghcr.io/bihealth
 
+# Name of the dotty image to use.
+# image_dotty_name=dotty
+
+# Version of the dotty image to use.
+# image_dotty_version=latest
+
 # Name of the mehari image to use.
 # image_mehari_name=mehari
 
