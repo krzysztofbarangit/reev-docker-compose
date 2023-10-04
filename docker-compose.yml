@@ -88,12 +88,13 @@ services:
     hostname: reev
     depends_on:
       - annonars
+      - dotty
       - mehari
-      - viguno
       - nginx
       - postgres
       - rabbitmq
       - redis
+      - viguno
     image: "${image_base:-ghcr.io/bihealth}/${image_reev_name:-reev}:\
       ${image_reev_version:-main}"
     secrets:
