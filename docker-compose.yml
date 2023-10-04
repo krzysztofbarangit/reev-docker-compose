@@ -89,11 +89,12 @@ services:
     depends_on:
       - annonars
       - mehari
-      - viguno
+      - nginx
       - nginx
       - postgres
       - rabbitmq
       - redis
+      - viguno
     image: "${image_base:-ghcr.io/bihealth}/${image_reev_name:-reev}:\
       ${image_reev_version:-main}"
     secrets:
