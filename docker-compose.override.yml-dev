@@ -40,7 +40,7 @@ services:
       - "3004:80"
 
   # map dotty to port 3005
-  nginx:
+  dotty:
     ports:
       - "3005:8080"
 
