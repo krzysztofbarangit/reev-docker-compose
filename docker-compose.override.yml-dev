@@ -12,6 +12,7 @@
 #   - `3003` -- viguno
 #   - `3004` -- nginx
 #   - `3005` -- dotty
+#   - `3006` -- cada-prio
 #   - `3020` -- postgres
 #   - `3030` -- redis
 #   - `3031` -- rabbitmq
@@ -43,6 +44,11 @@ services:
   dotty:
     ports:
       - "3005:8080"
+
+  # map cada-prio to port 3006
+  prio:
+    ports:
+      - "3006:8080"
 
   # disable traefik
   traefik:

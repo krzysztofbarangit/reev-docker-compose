@@ -40,6 +40,12 @@ FLOWER_BASIC_AUTH=admin:flower-password
 # Version of the dotty image to use.
 # image_dotty_version=latest
 
+# Name of the cada-prio image to use.
+# image_cada_prio_name=cada-prio
+
+# Version of the cada-prio image to use.
+# image_cada_prio_version=main
+
 # Name of the mehari image to use.
 # image_mehari_name=mehari
 

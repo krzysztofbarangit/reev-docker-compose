@@ -317,6 +317,21 @@ ln -sr .dev/volumes/reev-static/data/download/dotty/{*.json.gz,seqrepo} \
   .dev/volumes/reev-static/data/dotty
 ```
 
+To obtain data for cada-prio
+
+```bash session
+mkdir -p .dev/volumes/reev-static/data/download/cada-prio
+pushd .dev/volumes/reev-static/data/download/cada-prio
+wget \
+    https://github.com/bihealth/cada-prio-data/releases/download/cada-prio-data-20231112/cada-prio-model-20231112+0.6.1.tar.gz
+tar -xzf cada-prio-model-20231112+0.6.1.tar.gz 
+popd
+
+mkdir -p .dev/volumes/reev-static/data/cada-prio
+ln -sr .dev/volumes/reev-static/data/download/cada-prio/cada-prio-model-20231112+0.6.1/model/ \
+  .dev/volumes/reev-static/data/cada
+```
+
 ### Setup Configuration
 
 The next step step is to create the configuration files in `.dev/config`.

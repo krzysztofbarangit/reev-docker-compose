@@ -89,6 +89,7 @@ services:
     hostname: reev
     depends_on:
       - annonars
+      - cada-prio
       - dotty
       - mehari
       - nginx
@@ -159,6 +160,17 @@ services:
     hostname: annonars
     image: "${image_base:-ghcr.io/bihealth}/${image_annonars_name:-annonars}:\
       ${image_annonars_version:-latest}"
+
+  # -- cada-prio --------------------------------------------------------------
+  #
+  # cada-prio provides phenotype-based prioritization
+
+  cada-prio:
+    <<: *service_reev_default
+    container_name: cada-prio
+    hostname: cada-prio
+    image: "${image_base:-ghcr.io/bihealth}/${image_cada_prio_name:-cada-prio}:\
+      ${image_cada_prio_version:-main}"
 
   # -- PostgreSQL Server -----------------------------------------------------
   #
