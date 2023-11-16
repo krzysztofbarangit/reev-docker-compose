@@ -275,7 +275,7 @@ wget -O /tmp/annonars-clinvar-minimal-grch38-20231015+0.24.1.tar.gz \
   https://github.com/bihealth/annonars-data-clinvar/releases/download/annonars-data-clinvar-20231015/annonars-clinvar-minimal-grch38-20231015+0.24.1.tar.gz
 
 tar -C .dev/volumes/reev-static/data/download/annonars/ \
-  -tf /tmp/annonars-clinvar-minimal-grch37-20231015+0.24.1.tar.gz
+  -xf /tmp/annonars-clinvar-minimal-grch37-20231015+0.24.1.tar.gz
 tar -C .dev/volumes/reev-static/data/download/annonars \
   -xf /tmp/annonars-clinvar-minimal-grch38-20231015+0.24.1.tar.gz
 
