@@ -46,7 +46,7 @@ services:
       - "3005:8080"
 
   # map cada-prio to port 3006
-  prio:
+  cada-prio:
     ports:
       - "3006:8080"
 
