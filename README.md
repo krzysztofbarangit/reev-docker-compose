@@ -83,8 +83,8 @@ full/annonars/gnomad-mtdna-grch38-3.1+0.12.8/*:annonars/gnomad-mtdna-grch38-3.1+
 full/annonars/helixmtdb-grch37-20200327+0.12.8/*:annonars/helixmtdb-grch37-20200327+0.12.8
 full/annonars/helixmtdb-grch38-20200327+0.12.8/*:annonars/helixmtdb-grch38-20200327+0.12.8
 full/annonars/genes-3.1+2.1.1+4.4+20230606+10.1+20230828+0.19.0/*:annonars/genes-3.1+2.1.1+4.4+20230606+10.1+20230828+0.19.0
-full/mehari/genes-txs-grch37-0.2.2/*:mehari/genes-txs-grch37-0.2.2
-full/mehari/genes-txs-grch38-0.2.2/*:mehari/genes-txs-grch38-0.2.2
+full/mehari/genes-txs-grch37-0.3.0/*:mehari/genes-txs-grch37-0.3.0
+full/mehari/genes-txs-grch38-0.3.0/*:mehari/genes-txs-grch38-0.3.0
 full/mehari/genes-xlink-20230624/*:mehari/genes-xlink-20230624
 full/tracks/*:tracks
 full/worker/*:worker
