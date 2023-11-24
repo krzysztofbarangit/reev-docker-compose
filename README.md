@@ -299,6 +299,24 @@ for path in $paths_38; do
 done
 ```
 
+```bash session
+STATIC=reev-static
+mkdir -p .dev/volumes/$STATIC/data/download/mehari-data-txs-grch3{7,8}
+
+for ext in .zst .zst.sha256 .zst.report .zst.report.sha256; do
+  wget -O .dev/volumes/$STATIC/data/download/mehari-data-txs-grch37/mehari-data-txs-grch37-0.4.1.bin$ext \
+    https://github.com/bihealth/mehari-data-tx/releases/download/v0.4.1/mehari-data-txs-grch37-0.4.1.bin$ext
+  wget -O .dev/volumes/$STATIC/data/download/mehari-data-txs-grch38/mehari-data-txs-grch38-0.4.1.bin$ext \
+    https://github.com/bihealth/mehari-data-tx/releases/download/v0.4.1/mehari-data-txs-grch37-0.4.1.bin$ext
+done
+
+rm -f .dev/volumes/$STATIC/data/mehari/grch3?/txs.bin.zst
+ln -sr .dev/volumes/$STATIC/data/download/mehari-data-txs-grch37/mehari-data-txs-grch37-0.4.1.bin.zst \
+  .dev/volumes/$STATIC/data/mehari/grch37/txs.bin.zst
+ln -sr .dev/volumes/$STATIC/data/download/mehari-data-txs-grch38/mehari-data-txs-grch38-0.4.1.bin.zst \
+  .dev/volumes/$STATIC/data/mehari/grch38/txs.bin.zst
+```
+
 To obtain ClinVar, use the following.
 Note that this will install the data from November 12, 2023 and you might want to [look here for the latest release](https://github.com/bihealth/annonars-data-clinvar/releases).
 
