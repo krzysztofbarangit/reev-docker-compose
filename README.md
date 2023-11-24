@@ -382,8 +382,9 @@ tar -xzf cada-prio-model-20231112+0.6.1.tar.gz
 popd
 
 mkdir -p .dev/volumes/reev-static/data/cada-prio
+rm -f .dev/volumes/reev-static/data/cada-prio/model
 ln -sr .dev/volumes/reev-static/data/download/cada-prio/cada-prio-model-20231112+0.6.1/model/ \
-  .dev/volumes/reev-static/data/cada
+  .dev/volumes/reev-static/data/cada-prio
 ```
 
 ### Setup Configuration
