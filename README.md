@@ -299,6 +299,8 @@ for path in $paths_38; do
 done
 ```
 
+To download Mehari transcripts
+
 ```bash session
 STATIC=reev-static
 mkdir -p .dev/volumes/$STATIC/data/download/mehari-data-txs-grch3{7,8}
