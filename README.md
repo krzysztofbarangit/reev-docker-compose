@@ -350,6 +350,20 @@ tar -C .dev/volumes/$STATIC/data/download/annonars \
 rm -f .dev/volumes/$STATIC/data/annonars/clinvar-genes
 ln -sr .dev/volumes/$STATIC/data/download/annonars/annonars-clinvar-genes-20231112+0.29.3 \
   .dev/volumes/$STATIC/data/annonars/clinvar-genes
+
+wget -O /tmp/annonars-clinvar-sv-grch37-20231112+0.29.3.tar.gz \
+  https://github.com/bihealth/annonars-data-clinvar/releases/download/annonars-data-clinvar-20231112/annonars-clinvar-sv-grch37-20231112+0.29.3.tar.gz
+wget -O /tmp/annonars-clinvar-sv-grch38-20231112+0.29.3.tar.gz \
+  https://github.com/bihealth/annonars-data-clinvar/releases/download/annonars-data-clinvar-20231112/annonars-clinvar-sv-grch38-20231112+0.29.3.tar.gz
+tar -C .dev/volumes/$STATIC/data/download/annonars/ \
+  -xf /tmp/annonars-clinvar-sv-grch37-20231112+0.29.3.tar.gz
+tar -C .dev/volumes/$STATIC/data/download/annonars/ \
+  -xf /tmp/annonars-clinvar-sv-grch38-20231112+0.29.3.tar.gz
+rm -f .dev/volumes/$STATIC/data/annonars/grch3{7,8}/clinvar-sv
+ln -sr .dev/volumes/$STATIC/data/download/annonars/annonars-clinvar-sv-grch37-20231112+0.29.3 \
+  .dev/volumes/$STATIC/data/annonars/grch37/clinvar-sv
+ln -sr .dev/volumes/$STATIC/data/download/annonars/annonars-clinvar-sv-grch38-20231112+0.29.3 \
+  .dev/volumes/$STATIC/data/annonars/grch38/clinvar-sv
 ```
 
 To obtain data for dotty
