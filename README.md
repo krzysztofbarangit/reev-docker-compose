@@ -390,17 +390,20 @@ ln -sr .dev/volumes/reev-static/data/download/dotty/{*.json.gz,seqrepo} \
 To obtain data for cada-prio
 
 ```bash session
-mkdir -p .dev/volumes/reev-static/data/download/cada-prio
-pushd .dev/volumes/reev-static/data/download/cada-prio
+mkdir -p .dev/volumes/reev-static/data/download/cada
+pushd .dev/volumes/reev-static/data/download/cada
 wget \
     https://github.com/bihealth/cada-prio-data/releases/download/cada-prio-data-20231112/cada-prio-model-20231112+0.6.1.tar.gz
 tar -xzf cada-prio-model-20231112+0.6.1.tar.gz 
 popd
 
-mkdir -p .dev/volumes/reev-static/data/cada-prio
-rm -f .dev/volumes/reev-static/data/cada-prio/model
-ln -sr .dev/volumes/reev-static/data/download/cada-prio/cada-prio-model-20231112+0.6.1/model/ \
-  .dev/volumes/reev-static/data/cada-prio
+mkdir -p .dev/volumes/reev-static/data/cada
+rm -f .dev/volumes/reev-static/data/cada/model
+
+source_dir=".dev/volumes/reev-static/data/download/cada/cada-prio-model-20231112+0.6.1/model/"
+for file in ${source_dir}*; do
+    ln -sr "$file" ".dev/volumes/reev-static/data/cada/"
+done
 ```
 
 ### Setup Configuration
