@@ -84,9 +84,7 @@ cat <<"EOF" >/tmp/tokens.txt
 # full/annonars/cons-grch37-20161007+0.29.1
 # full/annonars/cons-grch38-20190906+0.29.1
 # full/annonars/dbnsfp-grch37-4.4a+0.29.1
-# full/annonars/dbnsfp-grch37-4.4c+0.29.1
 # full/annonars/dbnsfp-grch38-4.4a+0.29.1
-# full/annonars/dbnsfp-grch38-4.4c+0.29.1
 # full/annonars/dbscsnv-grch37-1.1+0.29.1
 # full/annonars/dbscsnv-grch38-1.1+0.29.1
 # full/annonars/dbsnp-grch37-b151+0.29.1
