@@ -68,7 +68,7 @@ services:
   # map rabbitmq port to 3031
   rabbitmq:
     ports:
-      - "3031:6379"
+      - "3031:5672"
 
   # map flower port to 3040
   flower:
