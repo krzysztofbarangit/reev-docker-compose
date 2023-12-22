@@ -80,7 +80,15 @@ services:
     ports:
       - "3041:80"
 
-  # no replicas of reev
-  reev:
+  # no replicas of reev-*
+  reev-backend:
+    deploy:
+      replicas: 0
+
+  reev-celery-worker:
+    deploy:
+      replicas: 0
+
+  reev-celery-beat:
     deploy:
       replicas: 0

@@ -13,6 +13,8 @@ FIRST_SUPERUSER_PASSWORD=SECURITY-ALERT-REPLACE-THIS
 # SMTP_USER=
 # SMTP_PASSWORD=
 # EMAILS_FROM_EMAIL=
+# Enable this on production only.
+# CLINVAR_USE_PRODUCTION=1
 
 # Postgres
 POSTGRES_SERVER=postgres
@@ -28,6 +30,9 @@ PGADMIN_DISABLE_POSTFIX=1
 
 # Flower
 FLOWER_BASIC_AUTH=admin:flower-password
+
+# Sentry setup.
+# SENTRY_ENVIRONMENT=production
 
 # -- Docker Images -----------------------------------------------------------
 

@@ -34,16 +34,16 @@ services:
       - "./volumes/traefik/letsencrypt:/letsencrypt:rw"
 
   # Configuration to override for `reev`.
- reev: 
+ reev-backend:
     labels:
       # Default labels lines for reev.
       - "traefik.enable=true"
       - "traefik.http.middlewares.xforward.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.routers.reev.entrypoints=web,websecure"
-      - "traefik.http.routers.reev.middlewares=xforward"
-      - "traefik.http.routers.reev.rule=HostRegexp(`{catchall:.+}`)"
-      - "traefik.http.services.reev.loadbalancer.server.port=8080"
-      - "traefik.http.routers.reev.tls=true"
+      - "traefik.http.routers.reev-backend.entrypoints=web,websecure"
+      - "traefik.http.routers.reev-backend.middlewares=xforward"
+      - "traefik.http.routers.reev-backend.rule=HostRegexp(`{catchall:.+}`)"
+      - "traefik.http.services.reev-backend.loadbalancer.server.port=8080"
+      - "traefik.http.routers.reev-backend.tls=true"
       # EXTRA labels lines for reev to enable letsencrypt.
-      - "traefik.http.routers.reev.tls=true"
-      - "traefik.http.routers.reev.tls.certresolver=le"
+      - "traefik.http.routers.reev-backend.tls=true"
+      - "traefik.http.routers.reev-backend.tls.certresolver=le"

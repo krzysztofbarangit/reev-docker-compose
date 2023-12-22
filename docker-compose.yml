@@ -12,17 +12,35 @@ x-service-default: &service_default
     - reev
   restart: unless-stopped
 
-# Default service definition for reev services.
-#
-# We provide the /data directory as read-only to all services as this
-# simplifies the configuration considerably.
-x-service-reev-default: &service_reev_default
+# Default service definition for internal services.
+x-service-internal: &service_internal
   <<: *service_default
   volumes:
     - type: bind
       source: ${volumes_basedir:-./.dev/volumes}/reev-static/data
       target: /data
       read_only: true
+
+# Default service definition for reev services.
+#
+# We provide the /data directory as read-only to all services as this
+# simplifies the configuration considerably.
+x-service-reev-default: &service_reev_default
+  <<: *service_default
+  image: "${image_base:-ghcr.io/bihealth}/${image_reev_name:-reev}:\
+    ${image_reev_version:-main}"
+  secrets:
+    - db-password
+  depends_on:
+    - annonars
+    - cada-prio
+    - dotty
+    - mehari
+    - nginx
+    - postgres
+    - rabbitmq
+    - redis
+    - viguno
 
 
 # == Services ================================================================
@@ -83,42 +101,48 @@ services:
   #
   # REEV web server
 
-  reev:
+  reev-backend:
     <<: *service_reev_default
-    container_name: reev
-    hostname: reev
-    depends_on:
-      - annonars
-      - cada-prio
-      - dotty
-      - mehari
-      - nginx
-      - postgres
-      - rabbitmq
-      - redis
-      - viguno
-    image: "${image_base:-ghcr.io/bihealth}/${image_reev_name:-reev}:\
-      ${image_reev_version:-main}"
-    secrets:
-      - db-password
+    container_name: reev-backend
+    hostname: reev-backend
     environment:
       FORWARDED_ALLOW_IPS: "*"
     labels:
       # Default labels lines for reev.
       - "traefik.enable=true"
       - "traefik.http.middlewares.xforward.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.routers.reev.entrypoints=web,websecure"
-      - "traefik.http.routers.reev.middlewares=xforward"
-      - "traefik.http.routers.reev.rule=HostRegexp(`{catchall:.+}`)"
-      - "traefik.http.services.reev.loadbalancer.server.port=8080"
-      - "traefik.http.routers.reev.tls=true"
+      - "traefik.http.routers.reev-backend.entrypoints=web,websecure"
+      - "traefik.http.routers.reev-backend.middlewares=xforward"
+      - "traefik.http.routers.reev-backend.rule=HostRegexp(`{catchall:.+}`)"
+      - "traefik.http.services.reev-backend.loadbalancer.server.port=8080"
+      - "traefik.http.routers.reev-backend.tls=true"
+
+  #
+  # REEV celery worker
+
+  reev-celery-worker:
+    <<: *service_reev_default
+    container_name: reev-celery-worker
+    hostname: reev-celery-worker
+    entrypoint:
+      - /entrypoint-celery-worker.sh
+
+  #
+  # REEV celery beat
+
+  reev-celery-beat:
+    <<: *service_reev_default
+    container_name: reev-celery-beat
+    hostname: reev-celery-beat
+    entrypoint:
+      - /entrypoint-celery-beat.sh
 
   # -- Dotty -----------------------------------------------------------------
   #
   # Dotty provides translation from c./n./g. notation to SPDI.
 
   dotty:
-    <<: *service_reev_default
+    <<: *service_internal
     container_name: dotty
     hostname: dotty
     image: "${image_base:-ghcr.io/bihealth}/${image_dotty_name:-dotty}:\
@@ -132,7 +156,7 @@ services:
   # Mehari provides the transcript-related information.
 
   mehari:
-    <<: *service_reev_default
+    <<: *service_internal
     container_name: mehari
     hostname: mehari
     image: "${image_base:-ghcr.io/bihealth}/${image_mehari_name:-mehari}:\
@@ -144,7 +168,7 @@ services:
   # information..
 
   viguno:
-    <<: *service_reev_default
+    <<: *service_internal
     container_name: viguno
     hostname: viguno
     image: "${image_base:-ghcr.io/bihealth}/${image_viguno_name:-viguno}:\
@@ -155,7 +179,7 @@ services:
   # Annonars provides the variant information but also the gene information.
 
   annonars:
-    <<: *service_reev_default
+    <<: *service_internal
     container_name: annonars
     hostname: annonars
     image: "${image_base:-ghcr.io/bihealth}/${image_annonars_name:-annonars}:\
@@ -166,7 +190,7 @@ services:
   # cada-prio provides phenotype-based prioritization
 
   cada-prio:
-    <<: *service_reev_default
+    <<: *service_internal
     container_name: cada-prio
     hostname: cada-prio
     image: "${image_base:-ghcr.io/bihealth}/${image_cada_prio_name:-cada-prio}:\
@@ -178,7 +202,7 @@ services:
   # persistent storage.
 
   postgres:
-    <<: *service_default
+    <<: *service_internal
     container_name: postgres
     hostname: postgres
     image: ${image_postgres_name:-postgres}:${image_postgres_version:-12}
@@ -195,7 +219,7 @@ services:
   # persistent storage.
 
   redis:
-    <<: *service_default
+    <<: *service_internal
     container_name: redis
     hostname: redis
     image: ${image_redis_name:-redis}:${image_redis_version:-7}
@@ -210,7 +234,7 @@ services:
   # persistent storage.
 
   rabbitmq:
-    <<: *service_default
+    <<: *service_internal
     container_name: rabbitmq
     hostname: rabbitmq
     image: ${image_rabbitmq_name:-rabbitmq}:${image_rabbitmq_version:-3}
@@ -224,7 +248,7 @@ services:
   # Useful for interactive database administration.
 
   pgadmin:
-    <<: *service_default
+    <<: *service_internal
     container_name: pgadmin
     hostname: pgadmin
     image: "${image_pgadmin_name:-dpage/pgadmin4}:\
@@ -247,7 +271,7 @@ services:
   # Real-time celery monitoring.
 
   flower:
-    <<: *service_default
+    <<: *service_internal
     container_name: flower
     hostname: flower
     image: ${image_flower_name:-mher/flower}:${image_flower_version:-latest}
