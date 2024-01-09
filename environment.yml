@@ -1,0 +1,7 @@
+name: reev-docker-compose
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - shellcheck=0.9.0

@@ -20,6 +20,21 @@ jobs:
         with:
           file_or_dir: |
             *.yml
+            .github/workflows/*.yml
+
+      - name: Setup formatting environment
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: environment.yml
+          init-shell: bash
+          cache-environment: true
+          post-cleanup: none  # breaks otherwise
+
+      - name: Check formating
+        run: |
+          make ci
+        shell: bash -el {0}
+
 
   Up-Down:
     runs-on: ubuntu-latest
