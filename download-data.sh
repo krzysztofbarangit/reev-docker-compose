@@ -14,6 +14,8 @@ export QUIET=${QUIET-0}
 export VERBOSE=${VERBOSE-0}
 # Dry-run mode.
 export DRY_RUN=${DRY_RUN-0}
+# No-verify-ssl mode: do not verify SSL certificates.
+export NO_VERIFY_SSL=${NO_VERIFY_SSL-0}
 # Download options: reduced-dev (default), reduced-exomes, full.
 export DOWNLOAD=${DOWNLOAD-reduced-dev}
 # Directory for static data.
@@ -24,6 +26,13 @@ export DIR_PREFIX=${DIR_PREFIX-.dev}
 export DATA_DIR=${DATA_DIR-$DIR_PREFIX/volumes/$STATIC_DIR/data}
 # S3 endpoing URL.
 export S3_ENDPOINT_URL=https://ceph-s3-public.cubi.bihealth.org
+
+# Set S5CMD_NO_VERIFY_SSL_ARG based on NO_VERIFY_SSL
+if [ "$NO_VERIFY_SSL" -eq 1 ]; then
+    S5CMD_NO_VERIFY_SSL_ARG="--no-verify-ssl"
+else
+    S5CMD_NO_VERIFY_SSL_ARG=""
+fi
 
 # -- Versions -----------------------------------------------------------------
 
@@ -251,6 +260,7 @@ while read -r line; do
     run s5cmd \
         --endpoint-url=$S3_ENDPOINT_URL \
         --no-sign-request \
+        $S5CMD_NO_VERIFY_SSL_ARG \
         sync \
         "s3://varfish-public/$(prefix_for $line)/$line/*" \
         $DATA_DIR/download/$line \

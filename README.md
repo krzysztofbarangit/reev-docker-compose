@@ -71,14 +71,25 @@ cp docker-compose.override.yml-dev docker-compose.override.yml
 
 ### Download Dev Data
 
-Now you need to obtain the data to serve by the mehari, viguno, and annonars container.
-For this, we have prepared strongly reduced data sets (overall less than 2GB rather than hundreds of GB of data).
+To serve data via the mehari, viguno, and annonars containers, you need to obtain the required datasets. We have prepared significantly reduced datasets (totaling less than 2GB as opposed to hundreds of GB) for development purposes.
 
-We provide a script that will setup the necessary directories, download the data, and create symlinks.
+We provide a script that sets up the necessary directories, downloads the data, and creates symlinks.
+
+By default, the script verifies SSL certificates when downloading data. If you encounter SSL verification issues or operate in an environment where SSL verification is not required, you can disable SSL verification by setting the `NO_VERIFY_SSL` variable to `1` when running the script.
+
+To download the data with SSL verification (default behavior):
 
 ```bash session
 bash download-data.sh
 ```
+
+To download the data without SSL verification:
+
+```bash session
+NO_VERIFY_SSL=1 bash download-data.sh
+```
+
+Note: Disabling SSL verification can make the connection less secure. Use this option only if you understand the risks and it is necessary for your environment.
 
 ### Setup Configuration
 
