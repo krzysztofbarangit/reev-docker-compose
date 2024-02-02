@@ -159,7 +159,7 @@ services:
     <<: *service_internal
     container_name: mehari
     hostname: mehari
-    image: "${image_base:-ghcr.io/bihealth}/${image_mehari_name:-mehari}:\
+    image: "${image_base:-ghcr.io/varfish-org}/${image_mehari_name:-mehari}:\
       ${image_mehari_version:-latest}"
 
   # -- Viguno ----------------------------------------------------------------
@@ -171,7 +171,7 @@ services:
     <<: *service_internal
     container_name: viguno
     hostname: viguno
-    image: "${image_base:-ghcr.io/bihealth}/${image_viguno_name:-viguno}:\
+    image: "${image_base:-ghcr.io/varfish-org}/${image_viguno_name:-viguno}:\
       ${image_viguno_version:-latest}"
 
   # -- Annonars ---------------------------------------------------------------
@@ -182,8 +182,8 @@ services:
     <<: *service_internal
     container_name: annonars
     hostname: annonars
-    image: "${image_base:-ghcr.io/bihealth}/${image_annonars_name:-annonars}:\
-      ${image_annonars_version:-latest}"
+    image: "${image_base:-ghcr.io/varfish-org}/\
+      ${image_annonars_name:-annonars}:${image_annonars_version:-latest}"
 
   # -- cada-prio --------------------------------------------------------------
   #

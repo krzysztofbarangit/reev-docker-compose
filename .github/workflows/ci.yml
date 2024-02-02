@@ -22,7 +22,7 @@ jobs:
             *.yml
             .github/workflows/*.yml
 
-      - name: Setup formatting environment
+      - name: Setup linting environment
         uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: environment.yml
