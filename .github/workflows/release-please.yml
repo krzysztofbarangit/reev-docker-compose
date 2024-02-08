@@ -15,3 +15,4 @@ jobs:
         id: release
         with:
           release-type: simple
+          token: ${{ secrets.BOT_TOKEN }}
