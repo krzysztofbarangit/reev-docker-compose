@@ -106,7 +106,7 @@ export V_CLINGEN_REGIONS=${V_CLINGEN_REGIONS-20240105}
 # Mehari Gene ID Xlink
 export V_MEHARI_XLINK=${V_MEHARI_XLINK-20240105}
 # Mehari Transcripts
-export V_MEHARI_TXS=${V_MEHARI_TXS-0.4.4}
+export V_MEHARI_TXS=${V_MEHARI_TXS-0.6.0}
 
 # dbVar version
 export V_DBVAR=${V_DBVAR-20231030}
