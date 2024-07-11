@@ -424,6 +424,9 @@ EOF
     ln -sr \
         $DATA_DIR/download/viguno/hpo-$V_HPO+$V_VIGUNO \
         $DATA_DIR/hpo
+    ln -sr \
+        $DATA_DIR/download/mehari/genes-xlink-$V_VARFISHDB/genes-xlink.tsv \
+        $DATA_DIR/download/viguno/hpo-$V_HPO+$V_VIGUNO/hgnc_xlink.tsv
 
     log_info "- worker"
     mkdir -p $DATA_DIR/worker/grch3{7,8}/strucvars/bgdbs
