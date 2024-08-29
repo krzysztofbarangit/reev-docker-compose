@@ -415,10 +415,10 @@ EOF
     mkdir -p $DATA_DIR/viguno
 
     # xlink
-    rm -f $DATA_DIR/hgnc_xlink.tsv
+    rm -f $DATA_DIR/hgnc_xlink.tsv $DATA_DIR/hpohgnc_xlink.tsv
     ln -sr \
         $DATA_DIR/download/mehari/genes-xlink-$V_VARFISHDB/genes-xlink.tsv \
-        $DATA_DIR/hgnc_xlink.tsv
+        $DATA_DIR/hpo/hgnc_xlink.tsv
     # hpo
     rm -f $DATA_DIR/hpo
     ln -sr \
