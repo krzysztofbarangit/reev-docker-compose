@@ -50,6 +50,11 @@ services:
     ports:
       - "3006:8080"
 
+  # map auto-acmg to port 3007
+  auto-acmg:
+    ports:
+      - "3007:8080"
+
   # disable traefik
   traefik:
     deploy:

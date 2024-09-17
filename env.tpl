@@ -16,6 +16,9 @@ FIRST_SUPERUSER_PASSWORD=SECURITY-ALERT-REPLACE-THIS
 # Enable this on production only.
 # CLINVAR_USE_PRODUCTION=1
 
+# AutoACMG
+SEQREPO_DATA_DIR=/home/user/seqrepo/master
+
 # Postgres
 POSTGRES_SERVER=postgres
 POSTGRES_USER=reev

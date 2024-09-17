@@ -196,6 +196,26 @@ services:
     image: "${image_base:-ghcr.io/bihealth}/${image_cada_prio_name:-cada-prio}:\
       ${image_cada_prio_version:-main}"
 
+  # -- auto-acmg --------------------------------------------------------------
+  #
+  # auto-acmg provides automatic ACMG classification
+
+  auto-acmg:
+    <<: *service_internal
+    container_name: auto-acmg
+    hostname: auto-acmg
+    image: "${image_base:-ghcr.io/bihealth}/${image_auto_acmg_name:-auto-acmg}:\
+      ${image_auto_acmg_version:-main}"
+    volumes:
+      - type: bind
+        source: ${volumes_basedir:-./.dev/volumes}/seqrepo/local
+        target: /usr/local/share/seqrepo
+      - type: bind
+        source: ${volumes_basedir:-./.dev/volumes}/seqrepo/master
+        target: /home/auto-acmg/seqrepo/master
+    env_file:
+      - .env
+
   # -- PostgreSQL Server -----------------------------------------------------
   #
   # We use the default configuration, but mount a volume for the data for

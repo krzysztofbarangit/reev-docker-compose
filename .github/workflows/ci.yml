@@ -57,6 +57,8 @@ jobs:
           mkdir -p .ci/volumes/rabbitmq/data
           mkdir -p .ci/volumes/redis/data
           mkdir -p .ci/volumes/reev-static/data
+          mkdir -p .ci/volumes/seqrepo/local
+          mkdir -p .ci/volumes/seqrepo/master
 
       - name: Prepare configuration
         run: |
