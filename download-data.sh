@@ -414,11 +414,6 @@ EOF
     log_info "- viguno"
     mkdir -p $DATA_DIR/viguno
 
-    # xlink
-    rm -f $DATA_DIR/hgnc_xlink.tsv $DATA_DIR/hpohgnc_xlink.tsv
-    ln -sr \
-        $DATA_DIR/download/mehari/genes-xlink-$V_VARFISHDB/genes-xlink.tsv \
-        $DATA_DIR/hpo/hgnc_xlink.tsv
     # hpo
     rm -f $DATA_DIR/hpo
     ln -sr \
@@ -427,6 +422,12 @@ EOF
     ln -sr \
         $DATA_DIR/download/mehari/genes-xlink-$V_VARFISHDB/genes-xlink.tsv \
         $DATA_DIR/download/viguno/hpo-$V_HPO+$V_VIGUNO/hgnc_xlink.tsv
+
+    # xlink
+    rm -f $DATA_DIR/hgnc_xlink.tsv $DATA_DIR/hpo/hgnc_xlink.tsv
+    ln -sr \
+        $DATA_DIR/download/mehari/genes-xlink-$V_VARFISHDB/genes-xlink.tsv \
+        $DATA_DIR/hpo/hgnc_xlink.tsv
 
     log_info "- worker"
     mkdir -p $DATA_DIR/worker/grch3{7,8}/strucvars/bgdbs
