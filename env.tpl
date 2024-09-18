@@ -17,7 +17,10 @@ FIRST_SUPERUSER_PASSWORD=SECURITY-ALERT-REPLACE-THIS
 # CLINVAR_USE_PRODUCTION=1
 
 # AutoACMG
-SEQREPO_DATA_DIR=/home/user/seqrepo/master
+AUTO_ACMG_API_ANNONARS_URL=http://annonars:8080
+AUTO_ACMG_API_MEHARI_URL=http://mehari:8080
+AUTO_ACMG_API_DOTTY_URL=http://dotty:8080
+AUTO_ACMG_SEQREPO_DATA_DIR=/home/user/seqrepo/master
 
 # Postgres
 POSTGRES_SERVER=postgres
@@ -130,3 +133,4 @@ FLOWER_BASIC_AUTH=admin:flower-password
 
 # Base directory for secrets.
 # secrets_basedir: ./.dev/secrets
+
