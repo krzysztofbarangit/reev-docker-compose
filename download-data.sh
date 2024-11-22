@@ -19,17 +19,17 @@ export NO_VERIFY_SSL=${NO_VERIFY_SSL-0}
 # Download options: reduced-dev (default), reduced-exomes, full.
 export DOWNLOAD=${DOWNLOAD-reduced-dev}
 # Directory for static data.
-export STATIC_DIR=${STATIC_DIR-reev-static}
+export STATIC_INFIX=${STATIC_INFIX-reev-static}
 # Overall directory prefix.
 export DIR_PREFIX=${DIR_PREFIX-.dev}
 # Overall static data directory.
-export DATA_DIR=${DATA_DIR-$DIR_PREFIX/volumes/$STATIC_DIR/data}
+export DATA_DIR=${DATA_DIR-$DIR_PREFIX/volumes/$STATIC_INFIX/data}
 # S3 endpoing URL.
 export S3_ENDPOINT_URL=https://ceph-s3-public.cubi.bihealth.org
 # Grep regex expression for downloading data.
 export LIST_GREP=${LIST_GREP-}
 # Steps to execute
-export STEPS=${STEPS-s3_sync,other}
+export STEPS=${STEPS-s3_sync,mehari,dotty,clinvar,cada}
 
 # Set S5CMD_NO_VERIFY_SSL_ARG based on NO_VERIFY_SSL
 if [ "$NO_VERIFY_SSL" -eq 1 ]; then
@@ -41,13 +41,13 @@ fi
 # -- Versions -----------------------------------------------------------------
 
 # annonars
-export V_ANNONARS=${V_ANNONARS-0.33.0}
+export V_ANNONARS=${V_ANNONARS-0.39.0}
 # annonars for annonars/genes
-export V_ANNONARS_ANNONARS_GENES=${V_ANNONARS_ANNONARS_GENES-0.34.0}
+export V_ANNONARS_GENES=${V_ANNONARS_GENES-0.41.3}
 # viguno
-export V_VIGUNO=${V_VIGUNO-0.2.0}
+export V_VIGUNO=${V_VIGUNO-0.3.1}
 # VarFish Worker
-export V_WORKER=${V_WORKER-0.10.2}
+export V_WORKER=${V_WORKER-0.13.0}
 
 # CADD
 export V_CADD=${V_CADD-1.6}
@@ -71,39 +71,39 @@ export V_REFSEQ_GRCH38=${V_REFSEQ_GRCH38-110}
 # ACMG SF list
 export V_ACMG_SF=${V_ACMG_SF-3.1}
 # gnomAD constraints
-export V_GNOMAD_CONSTRAINTS=${V_GNOMAD_CONSTRAINTS-4.0}
+export V_GNOMAD_CONSTRAINTS=${V_GNOMAD_CONSTRAINTS-4.1}
 # HPO release
-export V_HPO=${V_HPO-20230606}
+export V_HPO=${V_HPO-20240116}
 # HPO release for annonars/genes
 export V_HPO_ANNONARS_GENES=${V_HPO_ANNONARS_GENES-20240116}
 # OrphaPackets release
 export V_ORPHAPACKETS=${V_ORPHAPACKETS-10.1}
 # VarFish DB Download Data
-export V_VARFISHDB=${V_VARFISHDB-20240105}
+export V_VARFISHDB=${V_VARFISHDB-20240711}
 # VarFish DB Download Data for annonars/genes
 export V_VARFISHDB_ANNONARS_GENES=${V_VARFISHDB_ANNONARS_GENES-20240306}
 # gnomAD exomes GRCh37
 export V_GNOMAD_EXOMES_GRCH37=${V_GNOMAD_EXOMES_GRCH37-2.1.1}
 # gnomAD exomes GRCh38
-export V_GNOMAD_EXOMES_GRCH38=${V_GNOMAD_EXOMES_GRCH38-4.0}
+export V_GNOMAD_EXOMES_GRCH38=${V_GNOMAD_EXOMES_GRCH38-4.1}
 # gnomAD genomes GRCh37
 export V_GNOMAD_GENOMES_GRCH37=${V_GNOMAD_GENOMES_GRCH37-2.1.1}
 # gnomAD genomes GRCh38
-export V_GNOMAD_GENOMES_GRCH38=${V_GNOMAD_GENOMES_GRCH38-4.0}
+export V_GNOMAD_GENOMES_GRCH38=${V_GNOMAD_GENOMES_GRCH38-4.1}
 # gnomAD mtDNA
 export V_GNOMAD_MT=${V_GNOMAD_MT-3.1}
 # gnomAD SVs exomes GRCh37 (== ExAC)
 export V_GNOMAD_EXOMES_SVS_GRCH37=${V_GNOMAD_EXOMES_SVS_GRCH37-0.3.1}
 # gnomAD SVs exomes GRCh38
-export V_GNOMAD_EXOMES_SVS_GRCH38=${V_GNOMAD_EXOMES_SVS_GRCH38-4.0}
+export V_GNOMAD_EXOMES_SVS_GRCH38=${V_GNOMAD_EXOMES_SVS_GRCH38-4.1}
 # gnomAD SV genomes GRCh37
 export V_GNOMAD_GENOMES_SV_GRCH37=${V_GNOMAD_GENOMES_SV_GRCH37-2.1.1}
 # gnomAD SV genomes GRCh38
-export V_GNOMAD_GENOMES_SV_GRCH38=${V_GNOMAD_GENOMES_SV_GRCH38-4.0}
+export V_GNOMAD_GENOMES_SV_GRCH38=${V_GNOMAD_GENOMES_SV_GRCH38-4.1}
 # HelixMtDB
 export V_HELIXMTDB=${V_HELIXMTDB-20200327}
 # ClinGen Regions
-export V_CLINGEN_REGIONS=${V_CLINGEN_REGIONS-20240105}
+export V_CLINGEN_REGIONS=${V_CLINGEN_REGIONS-20240711}
 
 # Mehari Gene ID Xlink
 export V_MEHARI_XLINK=${V_MEHARI_XLINK-20240105}
@@ -194,9 +194,8 @@ log_error()
 #   prefix_for annonars/cadd-grch37-1.6+0.29.1
 prefix_for()
 {
-    for prefix in annonars/cadd annonars/cons annonars/dbnsfp annonars/dbscsnv \
-            annonars/dbsnp annonars/gnomad-exomes annonars/gnomad-genomes \
-            mehari/freqs viguno/hpo; do
+    for prefix in annonars/cadd annonars/dbnsfp annonars/dbsnp annonars/gnomad-exomes \
+        annonars/gnomad-genomes mehari/freqs; do
         if [[ $1 == $prefix* ]]; then
             # have reduced
             echo $DOWNLOAD
@@ -236,7 +235,7 @@ annonars/dbsnp-grch37-$V_DBSNP+$V_ANNONARS
 annonars/dbsnp-grch38-$V_DBSNP+$V_ANNONARS
 annonars/functional-grch37-$V_REFSEQ_GRCH37+$V_ANNONARS
 annonars/functional-grch38-$V_REFSEQ_GRCH38+$V_ANNONARS
-annonars/genes-$V_ACMG_SF+$V_GNOMAD_CONSTRAINTS+$V_DBNSFP_NO_SUFFIX+$V_HPO_ANNONARS_GENES+$V_VARFISHDB_ANNONARS_GENES+$V_ANNONARS_ANNONARS_GENES
+annonars/genes-$V_ACMG_SF+$V_GNOMAD_CONSTRAINTS+$V_DBNSFP_NO_SUFFIX+$V_HPO+$V_VARFISHDB+$V_ANNONARS_GENES
 annonars/gnomad-exomes-grch37-$V_GNOMAD_EXOMES_GRCH37+$V_ANNONARS
 annonars/gnomad-exomes-grch38-$V_GNOMAD_EXOMES_GRCH38+$V_ANNONARS
 annonars/gnomad-genomes-grch37-$V_GNOMAD_EXOMES_GRCH37+$V_ANNONARS
@@ -295,7 +294,7 @@ EOF
 
     rm -f $DATA_DIR/annonars/genes
     ln -sr \
-        $DATA_DIR/download/annonars/genes-$V_ACMG_SF+$V_GNOMAD_CONSTRAINTS+$V_DBNSFP_NO_SUFFIX+$V_HPO_ANNONARS_GENES+$V_VARFISHDB_ANNONARS_GENES+$V_ANNONARS_ANNONARS_GENES \
+        $DATA_DIR/download/annonars/genes-$V_ACMG_SF+$V_GNOMAD_CONSTRAINTS+$V_DBNSFP_NO_SUFFIX+$V_HPO+$V_VARFISHDB+$V_ANNONARS_GENES \
         $DATA_DIR/annonars/genes
 
     # cadd - GRCh37
@@ -398,47 +397,49 @@ EOF
         $DATA_DIR/annonars/grch38/cons
 
     log_info "- mehari"
-    mkdir -p $DATA_DIR/mehari/{grch37,grch38}
+    mkdir -p $DATA_DIR/mehari/{grch37,grch38}/seqvars
 
     # freqs - GRCh37
-    rm -f $DATA_DIR/mehari/grch37/freqs
+    rm -f $DATA_DIR/mehari/grch37/seqvars/freqs
     ln -sr \
         $DATA_DIR/download/mehari/freqs-grch37-$V_GNOMAD_EXOMES_GRCH37+$V_GNOMAD_GENOMES_GRCH37+$V_GNOMAD_MT+$V_HELIXMTDB+$V_ANNONARS \
-        $DATA_DIR/mehari/grch37/freqs
+        $DATA_DIR/mehari/grch37/seqvars/freqs
     # freqs - GRCh38
-    rm -f $DATA_DIR/mehari/grch38/freqs
+    rm -f $DATA_DIR/mehari/grch38/seqvars/freqs
     ln -sr \
         $DATA_DIR/download/mehari/freqs-grch38-$V_GNOMAD_EXOMES_GRCH38+$V_GNOMAD_GENOMES_GRCH38+$V_GNOMAD_MT+$V_HELIXMTDB+$V_ANNONARS \
-        $DATA_DIR/mehari/grch38/freqs
+        $DATA_DIR/mehari/grch38/seqvars/freqs
 
     log_info "- viguno"
     mkdir -p $DATA_DIR/viguno
 
     # xlink
-    rm -f $DATA_DIR/hgnc_xlink.tsv $DATA_DIR/hpohgnc_xlink.tsv
-    ln -sr \
-        $DATA_DIR/download/mehari/genes-xlink-$V_VARFISHDB/genes-xlink.tsv \
-        $DATA_DIR/hpo/hgnc_xlink.tsv
+    rm -f $DATA_DIR/hgnc_xlink.tsv
+    cp \
+        $DATA_DIR/download/mehari/genes-xlink-$V_MEHARI_XLINK/genes-xlink.tsv \
+        $DATA_DIR/hgnc_xlink.tsv
     # hpo
-    rm -f $DATA_DIR/hpo
+    rm -f \
+        $DATA_DIR/hpo \
+        $DATA_DIR/download/viguno/hpo-$V_HPO+$V_VIGUNO/hgnc_xlink.tsv
     ln -sr \
         $DATA_DIR/download/viguno/hpo-$V_HPO+$V_VIGUNO \
         $DATA_DIR/hpo
-    ln -sr \
-        $DATA_DIR/download/mehari/genes-xlink-$V_VARFISHDB/genes-xlink.tsv \
+    cp \
+        $DATA_DIR/download/mehari/genes-xlink-$V_MEHARI_XLINK/genes-xlink.tsv \
         $DATA_DIR/download/viguno/hpo-$V_HPO+$V_VIGUNO/hgnc_xlink.tsv
 
     log_info "- worker"
     mkdir -p $DATA_DIR/worker/grch3{7,8}/strucvars/bgdbs
 
     log_info "  - strucvars/bgdbs"
-    rm -f $DATA_DIR/worker/grch3{7,8}/strucvars/bgdbs/{exac,g1k,gnomad,dbvar,dgv,dgv-gs}.bin
+    rm -f $DATA_DIR/worker/grch3{7,8}/strucvars/bgdbs/{exac,g1k,gnomad,dbvar,dgv,dgv-gs,dgv_gs,gnomad_exomes,gnomad_genomes}.bin
     ln -sr $(echo $DATA_DIR/download/worker/bgdb-exac-grch37-*/bgdb-exac.bin | tr ' ' '\n' | tail -n 1) \
-      $DATA_DIR/worker/grch37/strucvars/bgdbs/exac.bin
-    ln -sr $(echo $DATA_DIR/download/worker/bgdb-g1k-grch37-$V_G1K+$V_WORKER/bgdb-g1k.bin | tr ' ' '\n' | tail -n 1) \
+      $DATA_DIR/worker/grch37/strucvars/bgdbs/gnomad_exomes.bin
+    ln -sr $(echo $DATA_DIR/download/worker/bgdb-g1k-grch37-*/bgdb-g1k.bin | tr ' ' '\n' | tail -n 1) \
       $DATA_DIR/worker/grch37/strucvars/bgdbs/g1k.bin
     ln -sr $(echo $DATA_DIR/download/worker/bgdb-gnomad-grch37-*/bgdb-gnomad.bin | tr ' ' '\n' | tail -n 1) \
-      $DATA_DIR/worker/grch37/strucvars/bgdbs/gnomad.bin
+      $DATA_DIR/worker/grch37/strucvars/bgdbs/gnomad_genomes.bin
     ln -sr $(echo $DATA_DIR/download/worker/bgdb-dbvar-grch37-*/bgdb-dbvar.bin | tr ' ' '\n' | tail -n 1) \
       $DATA_DIR/worker/grch37/strucvars/bgdbs/dbvar.bin
     ln -sr $(echo $DATA_DIR/download/worker/bgdb-dbvar-grch38-*/bgdb-dbvar.bin | tr ' ' '\n' | tail -n 1) \
@@ -448,9 +449,9 @@ EOF
     ln -sr $(echo $DATA_DIR/download/worker/bgdb-dgv-grch38-*/bgdb-dgv.bin | tr ' ' '\n' | tail -n 1) \
       $DATA_DIR/worker/grch38/strucvars/bgdbs/dgv.bin
     ln -sr $(echo $DATA_DIR/download/worker/bgdb-dgv-gs-grch37-*/bgdb-dgv-gs.bin | tr ' ' '\n' | tail -n 1) \
-      $DATA_DIR/worker/grch37/strucvars/bgdbs/dgv-gs.bin
+      $DATA_DIR/worker/grch37/strucvars/bgdbs/dgv_gs.bin
     ln -sr $(echo $DATA_DIR/download/worker/bgdb-dgv-gs-grch38-*/bgdb-dgv-gs.bin | tr ' ' '\n' | tail -n 1) \
-      $DATA_DIR/worker/grch38/strucvars/bgdbs/dgv-gs.bin
+      $DATA_DIR/worker/grch38/strucvars/bgdbs/dgv_gs.bin
 
     log_info "  - strucvars/clinvar"
     rm -f $DATA_DIR/worker/grch3{7,8}/strucvars/clinvar.bin
@@ -461,12 +462,12 @@ EOF
       $DATA_DIR/worker/grch38/strucvars/clinvar.bin
 
     log_info "  - strucvars/patho-mms"
-    rm -f $DATA_DIR/worker/grch3?/strucvars/patho-mms.bed
+    rm -f $DATA_DIR/worker/grch3?/strucvars/patho?mms.bed
 
     ln -sr $(ls $DATA_DIR/download/worker/patho-mms-grch37-*/patho-mms.bed | tr ' ' '\n' | tail -n 1) \
-      $DATA_DIR/worker/grch37/strucvars/patho-mms.bed
+      $DATA_DIR/worker/grch37/strucvars/patho_mms.bed
     ln -sr $(ls $DATA_DIR/download/worker/patho-mms-grch38-*/patho-mms.bed | tr ' ' '\n' | tail -n 1) \
-      $DATA_DIR/worker/grch38/strucvars/patho-mms.bed
+      $DATA_DIR/worker/grch38/strucvars/patho_mms.bed
 
     log_info "  - strucvars/tads"
     mkdir -p $DATA_DIR/worker/grch3{7,8}/tads
@@ -479,14 +480,14 @@ EOF
 
     log_info "  - noref/genes"
     mkdir -p $DATA_DIR/worker/noref/genes
-    rm -f $DATA_DIR/worker/noref/genes/{xlink.bin,acmg.tsv,mime2gene.tsv}
+    rm -f $DATA_DIR/worker/noref/genes/{xlink.bin,acmg.tsv,mim2gene.tsv}
 
     ln -sr $(ls $DATA_DIR/download/worker/genes-xlink-*/genes-xlink.bin | tr ' ' '\n' | tail -n 1) \
       $DATA_DIR/worker/noref/genes/xlink.bin
     ln -sr $(ls $DATA_DIR/download/worker/acmg-sf-*/acmg_sf.tsv | tr ' ' '\n' | tail -n 1) \
       $DATA_DIR/worker/noref/genes/acmg.tsv
     ln -sr $(ls $DATA_DIR/download/worker/mim2gene-*/mim2gene.tsv | tr ' ' '\n' | tail -n 1) \
-      $DATA_DIR/worker/noref/genes/mime2gene.tsv
+      $DATA_DIR/worker/noref/genes/mim2gene.tsv
 
     log_info "  - grch3{7,8}/regions"
     mkdir -p $DATA_DIR/worker/grch3{7,8}/genes
@@ -504,12 +505,14 @@ EOF
 
     log_info "  - grch3{7,8}/features"
     mkdir -p $DATA_DIR/worker/grch3{7,8}/features
-    rm -f $DATA_DIR/worker/grch3?/features/{masked_repeat.bin,masked_seqdup.bin}
+    rm -f $DATA_DIR/worker/grch3?/features/{masked_repeat.bin,masked_se?dup.bin}
 
     ln -sr $(ls $DATA_DIR/download/worker/masked-repeat-grch37-*/masked-repeat.bin | tr ' ' '\n' | tail -n 1) \
       $DATA_DIR/worker/grch37/features/masked_repeat.bin
     ln -sr $(ls $DATA_DIR/download/worker/masked-segdup-grch37-*/masked-segdup.bin | tr ' ' '\n' | tail -n 1) \
       $DATA_DIR/worker/grch37/features/masked_seqdup.bin
+    ln -sr $(ls $DATA_DIR/download/worker/masked-segdup-grch37-*/masked-segdup.bin | tr ' ' '\n' | tail -n 1) \
+      $DATA_DIR/worker/grch37/features/masked_segdup.bin
 
     ln -sr $(ls $DATA_DIR/download/worker/masked-repeat-grch38-*/masked-repeat.bin | tr ' ' '\n' | tail -n 1) \
       $DATA_DIR/worker/grch38/features/masked_repeat.bin
@@ -538,26 +541,26 @@ EOF
     log_info "... done setting up symlink structure."
 fi
 
-if [[ "$STEPS" = *other* ]]; then
+if [[ "$STEPS" = *mehari* ]]; then
     log_info "- mehari transcripts"
 
     mkdir -p $DATA_DIR/download/mehari-data-txs-grch3{7,8}
 
-    for ext in .zst .zst.sha256 .zst.report .zst.report.sha256; do
-      for release in GRCh37 GRCh38; do
-        release_lower=$(echo $release | tr '[:upper:]' '[:lower:]')
-        wget -q -c -O $DATA_DIR/download/mehari-data-txs-$release_lower/mehari-data-txs-$release-refseq-$V_MEHARI_TXS.bin$ext \
+    for ext in .zst .zst.sha256 .zst.report.jsonl .zst.report.jsonl.sha256; do
+      for release in grch37 grch38; do
+        wget -q -c -O $DATA_DIR/download/mehari-data-txs-$release/mehari-data-txs-$release-$V_MEHARI_TXS.bin$ext \
           https://github.com/bihealth/mehari-data-tx/releases/download/v$V_MEHARI_TXS/mehari-data-txs-$release-refseq-$V_MEHARI_TXS.bin$ext
       done
     done
 
-    for release in GRCh37 GRCh38; do
-      release_lower=$(echo $release | tr '[:upper:]' '[:lower:]')
-      rm -f $DATA_DIR/mehari/$release_lower/txs.bin.zst
-      ln -sr $DATA_DIR/download/mehari-data-txs-$release/mehari-data-txs-$release-refseq-$V_MEHARI_TXS.bin.zst \
-        $DATA_DIR/mehari/$release_lower/txs.bin.zst
+    for release in grch37 grch38; do
+      rm -f $DATA_DIR/mehari/$release/txs.bin.zst
+      ln -sr $DATA_DIR/download/mehari-data-txs-$release/mehari-data-txs-$release-$V_MEHARI_TXS.bin.zst \
+        $DATA_DIR/mehari/$release/txs.bin.zst
     done
+fi
 
+if [[ "$STEPS" = *clinvar* ]]; then
     log_info "- clinvar"
 
     wget -q -c -O /tmp/annonars-clinvar-minimal-grch37-$V_ANNONARS_DATA_CLINVAR_CLINVAR+$V_ANNONARS_DATA_CLINVAR_ANNONARS.tar.gz \
@@ -600,10 +603,16 @@ if [[ "$STEPS" = *other* ]]; then
     ln -sr $DATA_DIR/download/annonars/annonars-clinvar-sv-grch38-$V_ANNONARS_DATA_CLINVAR_CLINVAR+$V_ANNONARS_DATA_CLINVAR_ANNONARS \
       $DATA_DIR/annonars/grch38/clinvar-sv
 
+    rm -rf $DATA_DIR/mehari/{grch37,grch38}/seqvars/clinvar
+    ln -sr $DATA_DIR/annonars/grch37/clinvar $DATA_DIR/mehari/grch37/seqvars/clinvar
+    ln -sr $DATA_DIR/annonars/grch38/clinvar $DATA_DIR/mehari/grch38/seqvars/clinvar
+fi
+
+if [[ "$STEPS" = *dotty* ]]; then
     log_info "- dotty"
 
-    mkdir -p $DIR_PREFIX/volumes/$STATIC_DIR/data/download/dotty
-    pushd $DIR_PREFIX/volumes/$STATIC_DIR/data/download/dotty >/dev/null
+    mkdir -p $DIR_PREFIX/volumes/$STATIC_INFIX/data/download/dotty
+    pushd $DIR_PREFIX/volumes/$STATIC_INFIX/data/download/dotty >/dev/null
     wget -q -c \
         https://github.com/SACGF/cdot/releases/download/v$V_DOTTY_CDOT_VERSION/cdot-$V_DOTTY_CDOT_VERSION.ensembl.grch37.json.gz \
         https://github.com/SACGF/cdot/releases/download/v$V_DOTTY_CDOT_VERSION/cdot-$V_DOTTY_CDOT_VERSION.ensembl.grch38.json.gz \
@@ -615,26 +624,28 @@ if [[ "$STEPS" = *other* ]]; then
     cat seqrepo.tar.gz-?? | tar -xzf -
     popd >/dev/null
 
-    mkdir -p $DIR_PREFIX/volumes/$STATIC_DIR/data/dotty
-    rm -f $DIR_PREFIX/volumes/$STATIC_DIR/data/dotty/{*.json.gz,seqrepo}
-    ln -sr $DIR_PREFIX/volumes/$STATIC_DIR/data/download/dotty/{*.json.gz,seqrepo} \
-      $DIR_PREFIX/volumes/$STATIC_DIR/data/dotty
+    mkdir -p $DIR_PREFIX/volumes/$STATIC_INFIX/data/dotty
+    rm -f $DIR_PREFIX/volumes/$STATIC_INFIX/data/dotty/{*.json.gz,seqrepo}
+    ln -sr $DIR_PREFIX/volumes/$STATIC_INFIX/data/download/dotty/{*.json.gz,seqrepo} \
+      $DIR_PREFIX/volumes/$STATIC_INFIX/data/dotty
+fi
 
+if [[ "$STEPS" = *cada* ]]; then
     log_info "- cada-prio"
 
-    mkdir -p $DIR_PREFIX/volumes/$STATIC_DIR/data/download/cada
-    pushd $DIR_PREFIX/volumes/$STATIC_DIR/data/download/cada >/dev/null
+    mkdir -p $DIR_PREFIX/volumes/$STATIC_INFIX/data/download/cada
+    pushd $DIR_PREFIX/volumes/$STATIC_INFIX/data/download/cada >/dev/null
     wget -q -c \
         https://github.com/bihealth/cada-prio-data/releases/download/cada-prio-data-$V_CADA_PRIO_MODEL/cada-prio-model-$V_CADA_PRIO_MODEL+$V_CADA_PRIO_VERSION.tar.gz
     tar -xzf cada-prio-model-$V_CADA_PRIO_MODEL+$V_CADA_PRIO_VERSION.tar.gz
     popd >/dev/null
 
-    mkdir -p $DIR_PREFIX/volumes/$STATIC_DIR/data/cada
-    rm -f $DIR_PREFIX/volumes/$STATIC_DIR/data/cada/model
+    mkdir -p $DIR_PREFIX/volumes/$STATIC_INFIX/data/cada
+    rm -f $DIR_PREFIX/volumes/$STATIC_INFIX/data/cada/model
 
-    source_dir="$DIR_PREFIX/volumes/$STATIC_DIR/data/download/cada/cada-prio-model-$V_CADA_PRIO_MODEL+$V_CADA_PRIO_VERSION/model"
+    source_dir="$DIR_PREFIX/volumes/$STATIC_INFIX/data/download/cada/cada-prio-model-$V_CADA_PRIO_MODEL+$V_CADA_PRIO_VERSION/model"
     for file in "${source_dir}"/*; do
-      rm -f "$DIR_PREFIX/volumes/$STATIC_DIR/data/cada/$(basename "$file")"
-      ln -sr "$file" "$DIR_PREFIX/volumes/$STATIC_DIR/data/cada/"
+      rm -f "$DIR_PREFIX/volumes/$STATIC_INFIX/data/cada/$(basename "$file")"
+      ln -sr "$file" "$DIR_PREFIX/volumes/$STATIC_INFIX/data/cada/"
     done
 fi
