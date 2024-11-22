@@ -108,7 +108,7 @@ export V_CLINGEN_REGIONS=${V_CLINGEN_REGIONS-20240105}
 # Mehari Gene ID Xlink
 export V_MEHARI_XLINK=${V_MEHARI_XLINK-20240105}
 # Mehari Transcripts
-export V_MEHARI_TXS=${V_MEHARI_TXS-0.6.0}
+export V_MEHARI_TXS=${V_MEHARI_TXS-0.8.1}
 
 # dbVar version
 export V_DBVAR=${V_DBVAR-20231030}
@@ -544,16 +544,18 @@ if [[ "$STEPS" = *other* ]]; then
     mkdir -p $DATA_DIR/download/mehari-data-txs-grch3{7,8}
 
     for ext in .zst .zst.sha256 .zst.report .zst.report.sha256; do
-      for release in grch37 grch38; do
-        wget -q -c -O $DATA_DIR/download/mehari-data-txs-$release/mehari-data-txs-$release-$V_MEHARI_TXS.bin$ext \
-          https://github.com/bihealth/mehari-data-tx/releases/download/v$V_MEHARI_TXS/mehari-data-txs-$release-$V_MEHARI_TXS.bin$ext
+      for release in GRCh37 GRCh38; do
+        release_lower=$(echo $release | tr '[:upper:]' '[:lower:]')
+        wget -q -c -O $DATA_DIR/download/mehari-data-txs-$release_lower/mehari-data-txs-$release-refseq-$V_MEHARI_TXS.bin$ext \
+          https://github.com/bihealth/mehari-data-tx/releases/download/v$V_MEHARI_TXS/mehari-data-txs-$release-refseq-$V_MEHARI_TXS.bin$ext
       done
     done
 
-    for release in grch37 grch38; do
-      rm -f $DATA_DIR/mehari/$release/txs.bin.zst
-      ln -sr $DATA_DIR/download/mehari-data-txs-$release/mehari-data-txs-$release-$V_MEHARI_TXS.bin.zst \
-        $DATA_DIR/mehari/$release/txs.bin.zst
+    for release in GRCh37 GRCh38; do
+      release_lower=$(echo $release | tr '[:upper:]' '[:lower:]')
+      rm -f $DATA_DIR/mehari/$release_lower/txs.bin.zst
+      ln -sr $DATA_DIR/download/mehari-data-txs-$release/mehari-data-txs-$release-refseq-$V_MEHARI_TXS.bin.zst \
+        $DATA_DIR/mehari/$release_lower/txs.bin.zst
     done
 
     log_info "- clinvar"
