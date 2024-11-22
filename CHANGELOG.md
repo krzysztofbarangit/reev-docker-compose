@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.0](https://github.com/bihealth/reev-docker-compose/compare/v0.6.0...v0.7.0) (2024-11-22)
+
+
+### Features
+
+* Add V_HPO_ANNONARS_GENES  ([#59](https://github.com/bihealth/reev-docker-compose/issues/59)) ([402b256](https://github.com/bihealth/reev-docker-compose/commit/402b256823cf978dbe83f042c41c452ebaae7d1e))
+* bump annonars/genes ([#53](https://github.com/bihealth/reev-docker-compose/issues/53)) ([b099172](https://github.com/bihealth/reev-docker-compose/commit/b09917215d4e57ed7284cc1ff75bc33baf98eeb0))
+* bump to clinvar build for 2024-05-28 ([#60](https://github.com/bihealth/reev-docker-compose/issues/60)) ([6e6cfaf](https://github.com/bihealth/reev-docker-compose/commit/6e6cfafc29585ae9aac98a07d9c174e7123a32bf))
+* Integrate AutoACMG microservice ([#66](https://github.com/bihealth/reev-docker-compose/issues/66)) ([#67](https://github.com/bihealth/reev-docker-compose/issues/67)) ([50bb8fd](https://github.com/bihealth/reev-docker-compose/commit/50bb8fdc4729e61c27cfeae4bfe3eae12a136a41))
+* update version of clinvar to 20240503 ([#58](https://github.com/bihealth/reev-docker-compose/issues/58)) ([7ddfe8d](https://github.com/bihealth/reev-docker-compose/commit/7ddfe8de214a0e4bf15849f590a1c4c86c5267b5))
+
+
+### Bug Fixes
+
+* adding hgnc_xlink.tsv for viguno ([#64](https://github.com/bihealth/reev-docker-compose/issues/64)) ([8bd5191](https://github.com/bihealth/reev-docker-compose/commit/8bd5191e0bb1b56a48be1f1a219fd040fc027aa4))
+* bump mehari-data-tx to 0.6.0 ([#55](https://github.com/bihealth/reev-docker-compose/issues/55)) ([97924e6](https://github.com/bihealth/reev-docker-compose/commit/97924e65a9154951fb91d064335b75b62dcd9d19))
+* hpo xlink path for viguno ([#65](https://github.com/bihealth/reev-docker-compose/issues/65)) ([ec1bdfa](https://github.com/bihealth/reev-docker-compose/commit/ec1bdfad138343fdef5341eb7ab8eafd29cb7a0f))
+* Remove autoacmg settings from tpl ([#69](https://github.com/bihealth/reev-docker-compose/issues/69)) ([daa2467](https://github.com/bihealth/reev-docker-compose/commit/daa24675752d4dae66f44a0974236a6cbda62ff2))
+
 ## 0.6.0 (2024-02-08)
 
 
