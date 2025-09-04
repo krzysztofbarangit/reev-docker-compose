@@ -29,15 +29,20 @@ x-service-reev-default: &service_reev_default
   <<: *service_default
   image: "${image_base:-ghcr.io/bihealth}/${image_reev_name:-reev}:\
     ${image_reev_version:-main}"
-  secrets:
-    - db-password
+  environment:
+    - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    - POSTGRES_DB=${POSTGRES_DB:-reev}
+    - POSTGRES_USER=${POSTGRES_USER:-reev}
+    - POSTGRES_HOST=${POSTGRES_HOST}
+    - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+    - PGADMIN_DEFAULT_EMAIL=${PGLADMIN_DEFAULT_EMAIL:-admin@example.com}
+    - PGLADMIN_DEFAULT_PASSWORD=${PGLADMIN_DEFAULT_PASSWORD}
   depends_on:
     - annonars
     - cada-prio
     - dotty
     - mehari
     - nginx
-    - postgres
     - rabbitmq
     - redis
     - viguno
@@ -107,6 +112,11 @@ services:
     hostname: reev-backend
     environment:
       FORWARDED_ALLOW_IPS: "*"
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-reev}
+      POSTGRES_USER: ${POSTGRES_USER:-reev}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
     labels:
       # Default labels lines for reev.
       - "traefik.enable=true"
@@ -216,22 +226,7 @@ services:
     env_file:
       - .env
 
-  # -- PostgreSQL Server -----------------------------------------------------
-  #
-  # We use the default configuration, but mount a volume for the data for
-  # persistent storage.
-
-  postgres:
-    <<: *service_internal
-    container_name: postgres
-    hostname: postgres
-    image: ${image_postgres_name:-postgres}:${image_postgres_version:-12}
-    secrets:
-      - db-password
-    volumes:
-      - type: bind
-        source: ${volumes_basedir:-./.dev/volumes}/postgres/data
-        target: /var/lib/postgresql/data
+  # NOTE: PostgreSQL service removed - using external Dokploy database
 
   # -- redis -----------------------------------------------------------------
   #
@@ -263,28 +258,26 @@ services:
         source: ${volumes_basedir:-./.dev/volumes}/rabbitmq/data
         target: /var/lib/rabbitmq
 
-  # -- pgAdmin ----------------------------------------------------------------
+  # -- pgladmin ----------------------------------------------------------------
   #
   # Useful for interactive database administration.
 
   pgadmin:
     <<: *service_internal
-    container_name: pgadmin
-    hostname: pgadmin
-    image: "${image_pgadmin_name:-dpage/pgadmin4}:\
-      ${image_pgadmin_version:-latest}"
-    secrets:
-      - db-password
-      - pgadmin-password
-    depends_on:
-      - postgres
+    container_name: pgladmin
+    hostname: pgladmin
+    image: "${image_pgladmin_name:-dpage/pgladmin4}:\
+      ${image_pgladmin_version:-latest}"
+    environment:
+      - PGLADMIN_DEFAULT_EMAIL=${PGLADMIN_DEFAULT_EMAIL:-admin@example.com}
+      - PGLADMIN_DEFAULT_PASSWORD=${PGLADMIN_DEFAULT_PASSWORD}
     volumes:
       - type: bind
-        source: ${volumes_basedir:-./.dev/volumes}/pgadmin/data
-        target: /private/var/lib/pgadmin
+        source: ${volumes_basedir:-./.dev/volumes}/pgladmin/data
+        target: /private/var/lib/pgladmin
       - type: bind
-        source: ${config_basedir:-./.dev/config}/pgadmin/servers.json
-        target: /pgadmin4/servers.json
+        source: ${config_basedir:-./.dev/config}/pgladmin/servers.json
+        target: /pgladmin4/servers.json
 
   # -- flower -----------------------------------------------------------------
   #
@@ -301,16 +294,6 @@ services:
       - "celery"
       - "--broker=amqp://guest@rabbitmq:5672//"
       - "flower"
-
-# == Secrets ================================================================
-
-secrets:
-  # The PostgreSQL database password.
-  db-password:
-    file: ${secrets_basedir:-./.dev/secrets}/db-password
-  # The pgAdmin admin password.
-  pgadmin-password:
-    file: ${secrets_basedir:-./.dev/secrets}/pgadmin-password
 
 # == Networks ================================================================
 
