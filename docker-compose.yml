@@ -50,47 +50,35 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=dokploy-network
-      - traefik.http.routers.reev.rule=Host(`reev.badamy.site`)
-      - traefik.http.routers.reev.entrypoints=web,websecure
-      - traefik.http.routers.reev.tls=true
-      - traefik.http.services.reev.loadbalancer.server.port=8080
+      - traefik.http.services.reev-backend.loadbalancer.server.port=8080
     environment:
-      # --- DB parametry (TCP) ---
+      # --- DB (TCP) ---
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_DB:   ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-reev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # libpq (żeby nie próbował socketów)
+      # libpq (żeby nie używał socketów)
       PGHOST: postgres
       PGPORT: "5432"
       PGUSER: ${POSTGRES_USER:-reev}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: ${POSTGRES_DB:-postgres}
-      # *** KLUCZOWE: URI z URL-ENC hasłem ***
-      SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD_URLENC}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-      DATABASE_URL:            postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD_URLENC}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      # *** ASYNC driver (kluczowe) ***
+      SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      DATABASE_URL:            postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
       # reverse-proxy
       FORWARDED_ALLOW_IPS: "*"
     depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_started
-      redis:
-        condition: service_started
-      annonars:
-        condition: service_started
-      cada-prio:
-        condition: service_started
-      dotty:
-        condition: service_started
-      mehari:
-        condition: service_started
-      viguno:
-        condition: service_started
-      auto-acmg:
-        condition: service_started
+      postgres:   { condition: service_healthy }
+      rabbitmq:   { condition: service_started }
+      redis:      { condition: service_started }
+      annonars:   { condition: service_started }
+      cada-prio:  { condition: service_started }
+      dotty:      { condition: service_started }
+      mehari:     { condition: service_started }
+      viguno:     { condition: service_started }
+      auto-acmg:  { condition: service_started }
 
   reev-celery-worker:
     image: ghcr.io/bihealth/reev:main
@@ -107,15 +95,12 @@ services:
       PGUSER: ${POSTGRES_USER:-reev}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: ${POSTGRES_DB:-postgres}
-      SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD_URLENC}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-      DATABASE_URL:            postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD_URLENC}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      DATABASE_URL:            postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
     depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_started
-      redis:
-        condition: service_started
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_started }
+      redis:    { condition: service_started }
     entrypoint: ["/entrypoint-celery-worker.sh"]
 
   reev-celery-beat:
@@ -133,15 +118,12 @@ services:
       PGUSER: ${POSTGRES_USER:-reev}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: ${POSTGRES_DB:-postgres}
-      SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD_URLENC}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-      DATABASE_URL:            postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD_URLENC}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      DATABASE_URL:            postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
     depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_started
-      redis:
-        condition: service_started
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_started }
+      redis:    { condition: service_started }
     entrypoint: ["/entrypoint-celery-beat.sh"]
 
   # ===== Usługi wewnętrzne =====
@@ -149,36 +131,31 @@ services:
     image: ghcr.io/bihealth/dotty:latest
     restart: unless-stopped
     networks: [reev]
-    volumes:
-      - reev_static_data:/data:ro
+    volumes: [ "reev_static_data:/data:ro" ]
 
   mehari:
     image: ghcr.io/varfish-org/mehari:latest
     restart: unless-stopped
     networks: [reev]
-    volumes:
-      - reev_static_data:/data:ro
+    volumes: [ "reev_static_data:/data:ro" ]
 
   viguno:
     image: ghcr.io/varfish-org/viguno:latest
     restart: unless-stopped
     networks: [reev]
-    volumes:
-      - reev_static_data:/data:ro
+    volumes: [ "reev_static_data:/data:ro" ]
 
   annonars:
     image: ghcr.io/varfish-org/annonars:latest
     restart: unless-stopped
     networks: [reev]
-    volumes:
-      - reev_static_data:/data:ro
+    volumes: [ "reev_static_data:/data:ro" ]
 
   cada-prio:
     image: ghcr.io/bihealth/cada-prio:main
     restart: unless-stopped
     networks: [reev]
-    volumes:
-      - reev_static_data:/data:ro
+    volumes: [ "reev_static_data:/data:ro" ]
 
   auto-acmg:
     image: ghcr.io/bihealth/auto-acmg:main
@@ -192,23 +169,18 @@ services:
     image: mher/flower:latest
     restart: unless-stopped
     networks: [reev]
-    depends_on:
-      rabbitmq:
-        condition: service_started
+    depends_on: { rabbitmq: { condition: service_started } }
     command: ["celery", "--broker=amqp://guest@rabbitmq:5672//", "flower"]
 
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: unless-stopped
     networks: [reev]
-    depends_on:
-      postgres:
-        condition: service_started
+    depends_on: { postgres: { condition: service_started } }
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
+    volumes: [ "pgadmin_data:/var/lib/pgadmin" ]
 
 networks:
   reev: {}
