@@ -2,9 +2,7 @@
 
 # ===================  NETWORKS  ===================
 networks:
-  reev:
-    driver_opts:
-      com.docker.network.bridge.name: br-reev
+  reev: {}
 
 # ===================  VOLUMES  ====================
 volumes:
@@ -18,162 +16,25 @@ volumes:
 
 # ===================  SERVICES  ===================
 services:
-  # -------- Reverse Proxy (Traefik) --------
-  traefik:
-    image: traefik:2.10
-    container_name: traefik
-    restart: unless-stopped
-    networks: [reev]
-    ports:
-      - "80:80"
-      - "443:443"
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-
-  # -------- REEV Backend (public przez Traefik) --------
-  reev-backend:
-    image: ghcr.io/bihealth/reev:main
-    container_name: reev-backend
-    restart: unless-stopped
-    networks: [reev]
-    environment:
-      # DB – pobierane z Dokploy (Environment)
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # Inne, typowe dla backendów za proxy:
-      FORWARDED_ALLOW_IPS: "*"
-    depends_on:
-      - postgres
-      - redis
-      - rabbitmq
-      - annonars
-      - cada-prio
-      - dotty
-      - mehari
-      - viguno
-      - auto-acmg
-    labels:
-      - "traefik.enable=true"
-      # UWAGA: Catch-all (dowolny host). Jeśli wolisz konkretną domenę:
-      # ZAMIEN to rule na: Host(`reev.badamy.site`)
-      - "traefik.http.routers.reev-backend.rule=HostRegexp(`{catchall:.+}`)"
-      - "traefik.http.routers.reev-backend.entrypoints=web,websecure"
-      - "traefik.http.routers.reev-backend.tls=true"
-      - "traefik.http.services.reev-backend.loadbalancer.server.port=8080"
-
-  # -------- Celery Worker --------
-  reev-celery-worker:
-    image: ghcr.io/bihealth/reev:main
-    container_name: reev-celery-worker
-    restart: unless-stopped
-    networks: [reev]
-    environment:
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    depends_on:
-      - postgres
-      - redis
-      - rabbitmq
-    entrypoint: ["/entrypoint-celery-worker.sh"]
-
-  # -------- Celery Beat (scheduler) --------
-  reev-celery-beat:
-    image: ghcr.io/bihealth/reev:main
-    container_name: reev-celery-beat
-    restart: unless-stopped
-    networks: [reev]
-    environment:
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    depends_on:
-      - postgres
-      - redis
-      - rabbitmq
-    entrypoint: ["/entrypoint-celery-beat.sh"]
-
-  # -------- Usługi wewnętrzne REEV --------
-  dotty:
-    image: ghcr.io/bihealth/dotty:latest
-    container_name: dotty
-    restart: unless-stopped
-    networks: [reev]
-    volumes:
-      - reev_static_data:/data:ro
-
-  mehari:
-    image: ghcr.io/varfish-org/mehari:latest
-    container_name: mehari
-    restart: unless-stopped
-    networks: [reev]
-    volumes:
-      - reev_static_data:/data:ro
-
-  viguno:
-    image: ghcr.io/varfish-org/viguno:latest
-    container_name: viguno
-    restart: unless-stopped
-    networks: [reev]
-    volumes:
-      - reev_static_data:/data:ro
-
-  annonars:
-    image: ghcr.io/varfish-org/annonars:latest
-    container_name: annonars
-    restart: unless-stopped
-    networks: [reev]
-    volumes:
-      - reev_static_data:/data:ro
-
-  cada-prio:
-    image: ghcr.io/bihealth/cada-prio:main
-    container_name: cada-prio
-    restart: unless-stopped
-    networks: [reev]
-    volumes:
-      - reev_static_data:/data:ro
-
-  auto-acmg:
-    image: ghcr.io/bihealth/auto-acmg:main
-    container_name: auto-acmg
-    restart: unless-stopped
-    networks: [reev]
-    volumes:
-      - seqrepo_local:/usr/local/share/seqrepo
-      - seqrepo_master:/home/auto-acmg/seqrepo/master
-
-  # -------- Baza i kolejkowe --------
+  # -------- Baza i kolejki --------
   postgres:
     image: postgres:12
-    container_name: postgres
     restart: unless-stopped
     networks: [reev]
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-reev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-reev} -d ${POSTGRES_DB:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
 
   redis:
     image: redis:7
-    container_name: redis
     restart: unless-stopped
     networks: [reev]
     volumes:
@@ -181,44 +42,146 @@ services:
 
   rabbitmq:
     image: rabbitmq:3
-    container_name: rabbitmq
     restart: unless-stopped
     networks: [reev]
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
+  # -------- REEV Backend (bez portów/labels – za proxy Dokploya) --------
+  reev-backend:
+    image: ghcr.io/bihealth/reev:main
+    restart: unless-stopped
+    networks: [reev]
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-reev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      FORWARDED_ALLOW_IPS: "*"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+      annonars:
+        condition: service_started
+      cada-prio:
+        condition: service_started
+      dotty:
+        condition: service_started
+      mehari:
+        condition: service_started
+      viguno:
+        condition: service_started
+      auto-acmg:
+        condition: service_started
+
+  # -------- Celery --------
+  reev-celery-worker:
+    image: ghcr.io/bihealth/reev:main
+    restart: unless-stopped
+    networks: [reev]
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-reev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+    entrypoint: ["/entrypoint-celery-worker.sh"]
+
+  reev-celery-beat:
+    image: ghcr.io/bihealth/reev:main
+    restart: unless-stopped
+    networks: [reev]
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-reev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+    entrypoint: ["/entrypoint-celery-beat.sh"]
+
+  # -------- Usługi wewnętrzne REEV --------
+  dotty:
+    image: ghcr.io/bihealth/dotty:latest
+    restart: unless-stopped
+    networks: [reev]
+    volumes:
+      - reev_static_data:/data:ro
+
+  mehari:
+    image: ghcr.io/varfish-org/mehari:latest
+    restart: unless-stopped
+    networks: [reev]
+    volumes:
+      - reev_static_data:/data:ro
+
+  viguno:
+    image: ghcr.io/varfish-org/viguno:latest
+    restart: unless-stopped
+    networks: [reev]
+    volumes:
+      - reev_static_data:/data:ro
+
+  annonars:
+    image: ghcr.io/varfish-org/annonars:latest
+    restart: unless-stopped
+    networks: [reev]
+    volumes:
+      - reev_static_data:/data:ro
+
+  cada-prio:
+    image: ghcr.io/bihealth/cada-prio:main
+    restart: unless-stopped
+    networks: [reev]
+    volumes:
+      - reev_static_data:/data:ro
+
+  auto-acmg:
+    image: ghcr.io/bihealth/auto-acmg:main
+    restart: unless-stopped
+    networks: [reev]
+    volumes:
+      - seqrepo_local:/usr/local/share/seqrepo
+      - seqrepo_master:/home/auto-acmg/seqrepo/master
+
   # -------- Flower (podgląd kolejek) --------
   flower:
     image: mher/flower:latest
-    container_name: flower
     restart: unless-stopped
     networks: [reev]
-    depends_on: [rabbitmq]
+    depends_on:
+      rabbitmq:
+        condition: service_started
     command: ["celery", "--broker=amqp://guest@rabbitmq:5672//", "flower"]
-    # Jeśli chcesz wystawić przez Traefik (opcjonalnie):
-    # labels:
-    #   - "traefik.enable=true"
-    #   - "traefik.http.routers.flower.rule=Host(`flower.badamy.site`)"
-    #   - "traefik.http.routers.flower.entrypoints=web,websecure"
-    #   - "traefik.http.routers.flower.tls=true"
-    #   - "traefik.http.services.flower.loadbalancer.server.port=5555"
 
-  # -------- pgAdmin (opcjonalnie) --------
+  # -------- pgAdmin (wewnętrznie; nie publikujemy portów) --------
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: pgadmin
     restart: unless-stopped
     networks: [reev]
-    depends_on: [postgres]
+    depends_on:
+      postgres:
+        condition: service_started
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     volumes:
       - pgadmin_data:/var/lib/pgadmin
-    # Domyślnie nie wystawiam publicznie. Jeśli chcesz za Traefikiem:
-    # labels:
-    #   - "traefik.enable=true"
-    #   - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.badamy.site`)"
-    #   - "traefik.http.routers.pgadmin.entrypoints=web,websecure"
-    #   - "traefik.http.routers.pgadmin.tls=true"
-    #   - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
