@@ -51,13 +51,26 @@ services:
       - reev
       - dokploy-network
     labels:
+      - "traefik.enable=true"
       - "traefik.docker.network=dokploy-network"
+      - "traefik.http.routers.reev.rule=Host(`reev.badamy.site`)"
+      - "traefik.http.routers.reev.entrypoints=web,websecure"
+      - "traefik.http.routers.reev.tls=true"
+      - "traefik.http.services.reev.loadbalancer.server.port=8080"
     environment:
+      # --- DB (wymuś TCP; bez gniazda UNIX) ---
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-reev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER:-reev}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-postgres}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      # reverse-proxy
       FORWARDED_ALLOW_IPS: "*"
     depends_on:
       postgres:
@@ -90,6 +103,12 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-reev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER:-reev}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-postgres}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
     depends_on:
       postgres:
         condition: service_healthy
@@ -109,6 +128,12 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-reev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER:-reev}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-postgres}
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
     depends_on:
       postgres:
         condition: service_healthy
@@ -191,4 +216,3 @@ networks:
   reev: {}
   dokploy-network:
     external: true
-
