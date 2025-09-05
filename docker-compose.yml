@@ -1,9 +1,5 @@
 # Compose Spec (bez "version:")
 
-# ===================  NETWORKS  ===================
-networks:
-  reev: {}
-
 # ===================  VOLUMES  ====================
 volumes:
   postgres_data:
@@ -47,11 +43,15 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  # -------- REEV Backend (bez portów/labels – za proxy Dokploya) --------
+  # -------- REEV Backend (za Traefikiem Dokploya) --------
   reev-backend:
     image: ghcr.io/bihealth/reev:main
     restart: unless-stopped
-    networks: [reev]
+    networks:
+      - reev
+      - dokploy-network
+    labels:
+      - "traefik.docker.network=dokploy-network"
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
@@ -172,7 +172,7 @@ services:
         condition: service_started
     command: ["celery", "--broker=amqp://guest@rabbitmq:5672//", "flower"]
 
-  # -------- pgAdmin (wewnętrznie; nie publikujemy portów) --------
+  # -------- pgAdmin (wewnętrznie) --------
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: unless-stopped
@@ -185,3 +185,10 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+
+# ===================  NETWORKS  ===================
+networks:
+  reev: {}
+  dokploy-network:
+    external: true
+
