@@ -1,5 +1,6 @@
-# Compose Spec (bez "version:")
+# Compose Spec (no "version:")
 
+# ===================  VOLUMES  ===================
 volumes:
   postgres_data:
   redis_data:
@@ -9,7 +10,9 @@ volumes:
   seqrepo_local:
   seqrepo_master:
 
+# ===================  SERVICES  ===================
 services:
+  # -------- PostgreSQL --------
   postgres:
     image: postgres:12
     restart: unless-stopped
@@ -26,6 +29,7 @@ services:
       timeout: 5s
       retries: 30
 
+  # -------- Redis --------
   redis:
     image: redis:7
     restart: unless-stopped
@@ -33,6 +37,7 @@ services:
     volumes:
       - redis_data:/data
 
+  # -------- RabbitMQ --------
   rabbitmq:
     image: rabbitmq:3
     restart: unless-stopped
@@ -40,33 +45,41 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  # ===== REEV (za Traefikiem Dokploya) =====
+  # -------- REEV Backend (za Traefikiem Dokploya) --------
   reev-backend:
     image: ghcr.io/bihealth/reev:main
     restart: unless-stopped
     networks:
       - reev
       - dokploy-network
+    # Jednoznaczny routing Traefika (router + service)
     labels:
       - traefik.enable=true
       - traefik.docker.network=dokploy-network
-      - traefik.http.services.reev-backend.loadbalancer.server.port=8080
+      - traefik.http.services.reev-svc.loadbalancer.server.port=8080
+      - traefik.http.routers.reev-router.rule=Host(`reev.badamy.site`)
+      - traefik.http.routers.reev-router.entrypoints=web,websecure
+      - traefik.http.routers.reev-router.tls=true
+      - traefik.http.routers.reev-router.service=reev-svc
     environment:
-      # --- DB (TCP) ---
+      # --- DB po TCP (bez gniazd UNIX) ---
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_DB:   ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-reev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # libpq (żeby nie używał socketów)
+
+      # libpq – wymuszenie TCP/host
       PGHOST: postgres
       PGPORT: "5432"
       PGUSER: ${POSTGRES_USER:-reev}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: ${POSTGRES_DB:-postgres}
-      # *** ASYNC driver (kluczowe) ***
+
+      # *** Async driver (kluczowe) ***
       SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
       DATABASE_URL:            postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+
       # reverse-proxy
       FORWARDED_ALLOW_IPS: "*"
     depends_on:
@@ -80,6 +93,7 @@ services:
       viguno:     { condition: service_started }
       auto-acmg:  { condition: service_started }
 
+  # -------- Celery Worker --------
   reev-celery-worker:
     image: ghcr.io/bihealth/reev:main
     restart: unless-stopped
@@ -103,6 +117,7 @@ services:
       redis:    { condition: service_started }
     entrypoint: ["/entrypoint-celery-worker.sh"]
 
+  # -------- Celery Beat (scheduler) --------
   reev-celery-beat:
     image: ghcr.io/bihealth/reev:main
     restart: unless-stopped
@@ -126,7 +141,7 @@ services:
       redis:    { condition: service_started }
     entrypoint: ["/entrypoint-celery-beat.sh"]
 
-  # ===== Usługi wewnętrzne =====
+  # -------- Usługi wewnętrzne REEV --------
   dotty:
     image: ghcr.io/bihealth/dotty:latest
     restart: unless-stopped
@@ -165,6 +180,7 @@ services:
       - seqrepo_local:/usr/local/share/seqrepo
       - seqrepo_master:/home/auto-acmg/seqrepo/master
 
+  # -------- Flower (podgląd kolejek) --------
   flower:
     image: mher/flower:latest
     restart: unless-stopped
@@ -172,6 +188,7 @@ services:
     depends_on: { rabbitmq: { condition: service_started } }
     command: ["celery", "--broker=amqp://guest@rabbitmq:5672//", "flower"]
 
+  # -------- pgAdmin --------
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: unless-stopped
@@ -182,6 +199,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     volumes: [ "pgadmin_data:/var/lib/pgadmin" ]
 
+# ===================  NETWORKS  ===================
 networks:
   reev: {}
   dokploy-network:
