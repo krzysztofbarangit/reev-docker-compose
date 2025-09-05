@@ -1,6 +1,5 @@
 # Compose Spec (bez "version:")
 
-# ===================  VOLUMES  ====================
 volumes:
   postgres_data:
   redis_data:
@@ -10,9 +9,7 @@ volumes:
   seqrepo_local:
   seqrepo_master:
 
-# ===================  SERVICES  ===================
 services:
-  # -------- Baza i kolejki --------
   postgres:
     image: postgres:12
     restart: unless-stopped
@@ -27,7 +24,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-reev} -d ${POSTGRES_DB:-postgres}"]
       interval: 10s
       timeout: 5s
-      retries: 20
+      retries: 30
 
   redis:
     image: redis:7
@@ -43,7 +40,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  # -------- REEV Backend (za Traefikiem Dokploya) --------
+  # ===== REEV (za Traefikiem Dokploya) =====
   reev-backend:
     image: ghcr.io/bihealth/reev:main
     restart: unless-stopped
@@ -51,25 +48,31 @@ services:
       - reev
       - dokploy-network
     labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=dokploy-network"
-      - "traefik.http.routers.reev.rule=Host(`reev.badamy.site`)"
-      - "traefik.http.routers.reev.entrypoints=web,websecure"
-      - "traefik.http.routers.reev.tls=true"
-      - "traefik.http.services.reev.loadbalancer.server.port=8080"
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.reev.rule=Host(`reev.badamy.site`)
+      - traefik.http.routers.reev.entrypoints=web,websecure
+      - traefik.http.routers.reev.tls=true
+      - traefik.http.services.reev.loadbalancer.server.port=8080
     environment:
-      # --- DB (wymuś TCP; bez gniazda UNIX) ---
+      # --- DB (wymuszenie TCP i jednoznacznego DSN) ---
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
-      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_DB:   ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-reev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # libpq – nadpisujemy, żeby NIE używał socketu @postgres
       PGHOST: postgres
       PGPORT: "5432"
       PGUSER: ${POSTGRES_USER:-reev}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: ${POSTGRES_DB:-postgres}
-      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+
+      # twardy DSN dla SQLAlchemy/Alembic (to jest najważniejsze)
+      SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      DATABASE_URL:            postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+
       # reverse-proxy
       FORWARDED_ALLOW_IPS: "*"
     depends_on:
@@ -92,7 +95,6 @@ services:
       auto-acmg:
         condition: service_started
 
-  # -------- Celery --------
   reev-celery-worker:
     image: ghcr.io/bihealth/reev:main
     restart: unless-stopped
@@ -100,7 +102,7 @@ services:
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
-      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_DB:   ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-reev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGHOST: postgres
@@ -108,7 +110,8 @@ services:
       PGUSER: ${POSTGRES_USER:-reev}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: ${POSTGRES_DB:-postgres}
-      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      DATABASE_URL:            postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
     depends_on:
       postgres:
         condition: service_healthy
@@ -125,7 +128,7 @@ services:
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
-      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_DB:   ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-reev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGHOST: postgres
@@ -133,7 +136,8 @@ services:
       PGUSER: ${POSTGRES_USER:-reev}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: ${POSTGRES_DB:-postgres}
-      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      DATABASE_URL:            postgresql+psycopg2://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
     depends_on:
       postgres:
         condition: service_healthy
@@ -143,7 +147,7 @@ services:
         condition: service_started
     entrypoint: ["/entrypoint-celery-beat.sh"]
 
-  # -------- Usługi wewnętrzne REEV --------
+  # ===== Usługi wewnętrzne =====
   dotty:
     image: ghcr.io/bihealth/dotty:latest
     restart: unless-stopped
@@ -187,7 +191,6 @@ services:
       - seqrepo_local:/usr/local/share/seqrepo
       - seqrepo_master:/home/auto-acmg/seqrepo/master
 
-  # -------- Flower (podgląd kolejek) --------
   flower:
     image: mher/flower:latest
     restart: unless-stopped
@@ -197,7 +200,6 @@ services:
         condition: service_started
     command: ["celery", "--broker=amqp://guest@rabbitmq:5672//", "flower"]
 
-  # -------- pgAdmin (wewnętrznie) --------
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: unless-stopped
@@ -211,7 +213,6 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
-# ===================  NETWORKS  ===================
 networks:
   reev: {}
   dokploy-network:
