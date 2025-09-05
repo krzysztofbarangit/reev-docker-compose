@@ -1,4 +1,4 @@
-# Compose Spec (bez "version:")
+# Compose Spec (no "version:")
 
 volumes:
   postgres_data:
@@ -40,6 +40,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
+  # ===== REEV (za Traefikiem Dokploya) =====
   reev-backend:
     image: ghcr.io/bihealth/reev:main
     restart: unless-stopped
@@ -47,41 +48,70 @@ services:
       - reev
       - dokploy-network
     labels:
-      - traefik.enable=true
-      - traefik.docker.network=dokploy-network
-      - traefik.http.services.reev-svc.loadbalancer.server.port=8080
-      - traefik.http.routers.reev-router.rule=Host(`reev.badamy.site`)
-      - traefik.http.routers.reev-router.entrypoints=web,websecure
-      - traefik.http.routers.reev-router.tls=true
-      - traefik.http.routers.reev-router.service=reev-svc
+      traefik.enable: "true"
+      traefik.docker.network: dokploy-network
+
+      # serwis backendu (port w kontenerze)
+      traefik.http.services.reev-svc.loadbalancer.server.port: "8080"
+
+      # router dla API: /api..., oraz ewentualne ścieżki z dokumentacją
+      traefik.http.routers.reev-api.rule: 'Host(`reev.badamy.site`) && (PathPrefix(`/api`) || Path(`/openapi.json`) || Path(`/docs`) || Path(`/redoc`))'
+      traefik.http.routers.reev-api.entrypoints: web,websecure
+      traefik.http.routers.reev-api.tls: "true"
+      traefik.http.routers.reev-api.service: reev-svc
+
+      # przekierowanie z "/" -> dokumentacja (zmień replacement na /api/v1/docs, jeśli chcesz)
+      traefik.http.middlewares.root-redirect.redirectregex.regex: "^https?://([^/]+)/?$"
+      traefik.http.middlewares.root-redirect.redirectregex.replacement: "https://$1/api/v1/openapi.json"
+      traefik.http.middlewares.root-redirect.redirectregex.permanent: "true"
+
+      # router dla "/" używa redirect middleware
+      traefik.http.routers.reev-root.rule: 'Host(`reev.badamy.site`) && Path(`/`)'
+      traefik.http.routers.reev-root.entrypoints: web,websecure
+      traefik.http.routers.reev-root.tls: "true"
+      traefik.http.routers.reev-root.middlewares: root-redirect
+      traefik.http.routers.reev-root.service: reev-svc
+
     environment:
-      # --- DB po TCP ---
+      # --- DB (TCP; jasny DSN) ---
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_DB:   ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-reev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # libpq → nie używaj socketów, tylko host:port
+
+      # libpq – wymuszamy TCP zamiast socketów
       PGHOST: postgres
       PGPORT: "5432"
       PGUSER: ${POSTGRES_USER:-reev}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: ${POSTGRES_DB:-postgres}
-      # *** KLUCZOWE: ASYNC DRIVER ***
-      SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-      DATABASE_URL:            postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+
+      # DSN FastAPI/SQLAlchemy/Alembic — asyncpg
+      SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      DATABASE_URL:            postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+
       # reverse-proxy
       FORWARDED_ALLOW_IPS: "*"
     depends_on:
-      postgres:   { condition: service_healthy }
-      rabbitmq:   { condition: service_started }
-      redis:      { condition: service_started }
-      annonars:   { condition: service_started }
-      cada-prio:  { condition: service_started }
-      dotty:      { condition: service_started }
-      mehari:     { condition: service_started }
-      viguno:     { condition: service_started }
-      auto-acmg:  { condition: service_started }
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+      annonars:
+        condition: service_started
+      cada-prio:
+        condition: service_started
+      dotty:
+        condition: service_started
+      mehari:
+        condition: service_started
+      viguno:
+        condition: service_started
+      auto-acmg:
+        condition: service_started
 
   reev-celery-worker:
     image: ghcr.io/bihealth/reev:main
@@ -98,12 +128,15 @@ services:
       PGUSER: ${POSTGRES_USER:-reev}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: ${POSTGRES_DB:-postgres}
-      SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-      DATABASE_URL:            postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      DATABASE_URL:            postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
     depends_on:
-      postgres: { condition: service_healthy }
-      rabbitmq: { condition: service_started }
-      redis:    { condition: service_started }
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
     entrypoint: ["/entrypoint-celery-worker.sh"]
 
   reev-celery-beat:
@@ -121,43 +154,52 @@ services:
       PGUSER: ${POSTGRES_USER:-reev}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: ${POSTGRES_DB:-postgres}
-      SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
-      DATABASE_URL:            postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      DATABASE_URL:            postgresql+asyncpg://${POSTGRES_USER:-reev}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
     depends_on:
-      postgres: { condition: service_healthy }
-      rabbitmq: { condition: service_started }
-      redis:    { condition: service_started }
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
     entrypoint: ["/entrypoint-celery-beat.sh"]
 
+  # ===== Usługi wewnętrzne =====
   dotty:
     image: ghcr.io/bihealth/dotty:latest
     restart: unless-stopped
     networks: [reev]
-    volumes: [ "reev_static_data:/data:ro" ]
+    volumes:
+      - reev_static_data:/data:ro
 
   mehari:
     image: ghcr.io/varfish-org/mehari:latest
     restart: unless-stopped
     networks: [reev]
-    volumes: [ "reev_static_data:/data:ro" ]
+    volumes:
+      - reev_static_data:/data:ro
 
   viguno:
     image: ghcr.io/varfish-org/viguno:latest
     restart: unless-stopped
     networks: [reev]
-    volumes: [ "reev_static_data:/data:ro" ]
+    volumes:
+      - reev_static_data:/data:ro
 
   annonars:
     image: ghcr.io/varfish-org/annonars:latest
     restart: unless-stopped
     networks: [reev]
-    volumes: [ "reev_static_data:/data:ro" ]
+    volumes:
+      - reev_static_data:/data:ro
 
   cada-prio:
     image: ghcr.io/bihealth/cada-prio:main
     restart: unless-stopped
     networks: [reev]
-    volumes: [ "reev_static_data:/data:ro" ]
+    volumes:
+      - reev_static_data:/data:ro
 
   auto-acmg:
     image: ghcr.io/bihealth/auto-acmg:main
@@ -171,18 +213,23 @@ services:
     image: mher/flower:latest
     restart: unless-stopped
     networks: [reev]
-    depends_on: { rabbitmq: { condition: service_started } }
+    depends_on:
+      rabbitmq:
+        condition: service_started
     command: ["celery", "--broker=amqp://guest@rabbitmq:5672//", "flower"]
 
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: unless-stopped
     networks: [reev]
-    depends_on: { postgres: { condition: service_started } }
+    depends_on:
+      postgres:
+        condition: service_started
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    volumes: [ "pgadmin_data:/var/lib/pgadmin" ]
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
 
 networks:
   reev: {}
